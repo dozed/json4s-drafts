@@ -47,7 +47,7 @@ object HlistExample extends App {
   implicitly[JSONR[String :: Int :: HNil]]
   val json = parseJson("""["hey", 42]""")
 
-  val x = json.readAs[String :: Int :: HNil]
+  val x = json.read[String :: Int :: HNil]
 
   println(x)
   // ReadSuccess(hey :: 42 :: HNil)

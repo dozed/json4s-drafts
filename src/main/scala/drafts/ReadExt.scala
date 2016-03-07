@@ -1,11 +1,9 @@
 package drafts
 
-import org.json4s.scalaz.JsonScalaz._
-
-
 object ReadExt {
 
   import org.json4s._
+  import org.json4s.scalaz.JsonScalaz._
 
   import _root_.scalaz._, Scalaz._
 
@@ -16,7 +14,7 @@ object ReadExt {
 
   implicit class JvalueOps(value: JValue) {
     def validate[A: JSONR]: ValidationNel[Error, A] = implicitly[JSONR[A]].read(value)
-    def readAs[A: JSONR]: Error \/ A = implicitly[JSONR[A]].read(value).disjunction.leftMap(_.head)
+    def read[A: JSONR]: Error \/ A = implicitly[JSONR[A]].read(value).disjunction.leftMap(_.head)
   }
 
   def validate1[A](f: JValue => Result[A]) = new JSONR[A] {
