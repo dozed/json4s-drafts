@@ -15,20 +15,20 @@ object WriteExt {
 
   case class JsonWriterContext[C, A](a: (C, A))
 
-  object JsonWriter {
+  object write {
 
     def apply[A](f: A => JValue): JSONW[A] = new JSONW[A] {
       override def write(a: A): JValue = f(a)
     }
 
-    def nil[A] = JsonWriter[A](_ => JNothing)
+    def nil[A] = write[A](_ => JNothing)
 
-    def context[C, A](f: (C, A) => JValue): JSONW[JsonWriterContext[C, A]] = JsonWriter[JsonWriterContext[C, A]](ca => f.tupled(ca.a))
+    def context[C, A](f: (C, A) => JValue): JSONW[JsonWriterContext[C, A]] = write[JsonWriterContext[C, A]](ca => f.tupled(ca.a))
 
   }
 
   implicit class JsonWriterOps[A](w: JSONW[A]) {
-    def withTag(tag: A => String, name: String = "type"): JSONW[A] = JsonWriter[A] { a =>
+    def withTag(tag: A => String, name: String = "type"): JSONW[A] = write[A] { a =>
       JObject(name -> JString(tag(a))) ~ w.write(a)
     }
   }

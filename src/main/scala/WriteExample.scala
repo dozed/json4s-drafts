@@ -11,18 +11,18 @@ object WriteExample extends App {
   case class Item(label: String, amount: Double, price: Double)
   case class Order(orderId: String, contact: Contact, items: List[Item])
 
-  implicit val contactWriter = JsonWriter[Contact](c => {
+  implicit val contactWriter: JSONW[Contact] = write[Contact](c => {
     ("email" -> c.email) ~
       ("phone" -> c.phone)
   })
 
-  implicit val itemWriter = JsonWriter[Item](i => {
+  implicit val itemWriter: JSONW[Item] = write[Item](i => {
     ("label" -> i.label) ~
       ("amount" -> i.amount) ~
       ("price" -> i.price)
   })
 
-  implicit val orderWriter = JsonWriter[Order](o => {
+  implicit val orderWriter: JSONW[Order] = write[Order](o => {
     ("orderId" -> o.orderId) ~
       ("contact" -> o.contact) ~
       ("items" -> o.items)

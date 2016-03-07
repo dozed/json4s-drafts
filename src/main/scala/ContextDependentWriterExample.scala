@@ -13,12 +13,12 @@ object ContextDependentWriterExample extends App {
 
   // context-free writers
 
-  implicit val itemWriter = JsonWriter[Item] { item =>
+  implicit val itemWriter = write[Item] { item =>
     ("id" -> item.id) ~
       ("text" -> item.text)
   }
 
-  implicit val userWriter = JsonWriter[User] { user =>
+  implicit val userWriter = write[User] { user =>
     ("id" -> user.id)
   }
 
@@ -33,7 +33,7 @@ object ContextDependentWriterExample extends App {
 
   case class BroadcastContext(privacy: Privacy, parent: Document)
 
-  implicit val itemCreatedMessage = JsonWriter.context[BroadcastContext, ItemCreatedMessage] { case (BroadcastContext(privacy, document), msg) =>
+  implicit val itemCreatedMessage = write.context[BroadcastContext, ItemCreatedMessage] { case (BroadcastContext(privacy, document), msg) =>
 
     if (privacy == "public") {
 
