@@ -29,10 +29,11 @@ object ContextDependentWriterExample extends App {
   // - an ItemCreatedMessage should write the author only, if the message is targetted to the author
   // - all other recipients should not see an author
 
-  type MessagePrivacy = String
-  type ParentDocument = Document
+  type Privacy = String
 
-  implicit val itemCreatedMessage = JsonWriter.context[(MessagePrivacy, ParentDocument), ItemCreatedMessage] { case ((privacy, document), msg) =>
+  case class BroadcastContext(privacy: Privacy, parent: Document)
+
+  implicit val itemCreatedMessage = JsonWriter.context[BroadcastContext, ItemCreatedMessage] { case (BroadcastContext(privacy, document), msg) =>
 
     if (privacy == "public") {
 
@@ -66,7 +67,7 @@ object ContextDependentWriterExample extends App {
   // - authorMsg can be returned in the response
   // - publicMsg can be pushed via sockets to other clients
 
-  val authorMsg = msg.toJson(("author", document))
+  val authorMsg = msg.toJson(BroadcastContext("author", document))
   //  {
   //    "type" : "ItemCreated",
   //    "item" : {
@@ -78,7 +79,7 @@ object ContextDependentWriterExample extends App {
   //    }
   //  }
 
-  val publicMsg = msg.toJson(("public", document))
+  val publicMsg = msg.toJson(BroadcastContext("public", document))
   //  {
   //    "type" : "ItemCreated",
   //    "item" : {
