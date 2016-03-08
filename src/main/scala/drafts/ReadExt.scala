@@ -17,7 +17,7 @@ object ReadExt {
     def read[A: JSONR]: Error \/ A = implicitly[JSONR[A]].read(value).disjunction.leftMap(_.head)
   }
 
-  def validate1[A](f: JValue => Result[A]) = new JSONR[A] {
+  def jsonr[A](f: JValue => Result[A]) = new JSONR[A] {
     def read(json: JValue) = f(json)
   }
 
