@@ -42,8 +42,8 @@ object ValidationExample extends App {
 
   implicit val phoneNumberRead: JSONR[PhoneNumber] = jsonr[PhoneNumber] { json =>
     json.validate[String] flatMap { s =>
-      isInternational(s) append phoneNumberWhitelist(s)
-    } map (str => PhoneNumber(str))
+      (isInternational(s) |@| phoneNumberWhitelist(s)).apply((x, y) => PhoneNumber(s))
+    }
   }
 
 
@@ -55,7 +55,7 @@ object ValidationExample extends App {
   // Failure(NonEmptyList(UncategorizedError(,is not an international number,List()), UncategorizedError(,does not match regex [0-9\s\+]+,List())))
 
   val x3: Error \/ PhoneNumber = (orderJson \ "contact" \ "phone")(0).read[PhoneNumber]
-  // \/-(+2398 2938092+2398 2938092)
+  // \/-(+2398 2938092)
 
 
   println(x1)
