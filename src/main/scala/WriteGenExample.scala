@@ -29,8 +29,12 @@ object WriteGenExample extends App {
 
 
   println(Gram(50).toJson)
+  // JObject(List((value,JDouble(50.0))))
+
   // println(Teaspoon(50).toJson)
+
   println(Contact("foo@example.org", List("+123", "+1293")).toJson)
+  // JObject(List((email,JString(foo@example.org)), (phone,JArray(List(JString(+123), JString(+1293))))))
 
 
 }
