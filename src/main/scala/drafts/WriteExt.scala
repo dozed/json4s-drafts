@@ -35,13 +35,15 @@ object WriteExt {
 
   // mini DSL
   implicit def pair2JObject[A](t: (String, A))(implicit w: JSONW[A]): JObject = JObject((t._1, w.write(t._2)))
+
   implicit def pair2Assoc[A](t: (String, A))(implicit w: JSONW[A]): JsonObjectAssoc = new JsonObjectAssoc(JObject((t._1, w.write(t._2))))
 
   implicit class JsonObjectAssoc(left: JObject) {
     def ~[A](right: (String, A))(implicit w: JSONW[A]): JObject = this.~(JObject((right._1, w.write(right._2))))
+
     def ~(right: JValue): JObject = {
-      right match  {
-        case jobj:JObject => JObject(left.obj ::: jobj.obj)
+      right match {
+        case jobj: JObject => JObject(left.obj ::: jobj.obj)
         case _ => left
       }
     }
@@ -50,7 +52,15 @@ object WriteExt {
   // direct writers
   implicit class WriterOps[A](a: A) {
     def toJson(implicit w: JSONW[A]): JValue = w.write(a)
+
     def toJson[C](c: C)(implicit w: JSONW[JsonWriterContext[C, A]]) = w.write(JsonWriterContext(c, a))
   }
+
+
+  import scala.language.experimental.macros
+
+  def typeTagGen[A]: A => String = macro Macros.typeTagGenImpl[A]
+
+  def writerGen[A]: JSONW[A] = macro Macros.writerGenImpl[A]
 
 }

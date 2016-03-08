@@ -10,6 +10,11 @@ object ParseExample extends App {
   implicitly[JSONR[String]]
   implicitly[JSONR[List[String]]]
 
+
+  JNothing.read[String]
+  // -\/(UnexpectedJSONError(JNothing,class org.json4s.JsonAST$JString))
+
+
   val orderDoc =
     """
       |{
