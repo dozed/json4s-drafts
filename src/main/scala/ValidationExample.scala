@@ -1,4 +1,3 @@
-import org.json4s.scalaz.JsonScalaz
 
 object ValidationExample extends App {
 
@@ -9,8 +8,7 @@ object ValidationExample extends App {
   import shapeless._
   import newtype._
 
-  import _root_.scalaz._
-  import Scalaz._
+  import _root_.scalaz._, Scalaz._
 
   type PhoneNumber = Newtype[String, PhoneNumberOps]
   def PhoneNumber(s: String) : PhoneNumber = newtype(s)
@@ -53,7 +51,7 @@ object ValidationExample extends App {
   val x1: Error \/ PhoneNumber = (orderJson \ "orderId").read[PhoneNumber]
   // -\/(UncategorizedError(,is not an international number,List()))
 
-  val x2: ValidationNel[JsonScalaz.Error, PhoneNumber] = (orderJson \ "orderId").validate[PhoneNumber]
+  val x2: ValidationNel[Error, PhoneNumber] = (orderJson \ "orderId").validate[PhoneNumber]
   // Failure(NonEmptyList(UncategorizedError(,is not an international number,List()), UncategorizedError(,does not match regex [0-9\s\+]+,List())))
 
   val x3: Error \/ PhoneNumber = (orderJson \ "contact" \ "phone")(0).read[PhoneNumber]
