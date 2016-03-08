@@ -29,6 +29,7 @@ object WriteGenExample extends App {
 
 
   println(Gram(50).toJson)
+  // println(Teaspoon(50).toJson)
   println(Contact("foo@example.org", List("+123", "+1293")).toJson)
 
 
