@@ -111,6 +111,25 @@ object JodaTimeExample extends App {
 
 
 
+  // LocalDate
+
+  // write LocalDate to json
+  val json1 = LocalDate.now().toJson
+
+  // read LocalDate from json
+  val localDate1 = json1.validate[LocalDate]
+
+
+  println(json1)
+  // JObject(List((year,JInt(2016)), (month,JInt(3)), (day,JInt(10))))
+
+  println(localDate1)
+  // Success(2016-03-10)
+
+
+
+
+  // all together
 
   case class Dates(
     duration: Duration,
