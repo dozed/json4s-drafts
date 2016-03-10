@@ -61,15 +61,15 @@ object JodaTimeExample extends App {
 
   // JSONR[A] reader typeclass from JValue => ValidationNel[Error, A] function
 
-  implicit val durationRead: JSONR[Duration] = jsonr[Duration] { json =>
+  implicit val durationRead: JSONR[Duration] = read[Duration] { json =>
     json.validate[Int] map (x => new Duration(x))
   }
 
-  implicit val instantRead: JSONR[Instant] = jsonr[Instant] { json =>
+  implicit val instantRead: JSONR[Instant] = read[Instant] { json =>
     json.validate[Int] map (x => new Instant(x))
   }
 
-  implicit val intervalRead: JSONR[Interval] = jsonr[Interval] { json =>
+  implicit val intervalRead: JSONR[Interval] = read[Interval] { json =>
     (
       (json \ "start").validate[Long] |@|
       (json \ "end").validate[Long]
@@ -78,7 +78,7 @@ object JodaTimeExample extends App {
     }
   }
 
-  implicit val dateTimeRead: JSONR[DateTime] = jsonr[DateTime] { json =>
+  implicit val dateTimeRead: JSONR[DateTime] = read[DateTime] { json =>
     json.validate[String] flatMap  { str =>
       try  {
         dateTimeFormat.parseDateTime(str).successNel[Error]
@@ -88,7 +88,7 @@ object JodaTimeExample extends App {
     }
   }
 
-  implicit val localDateRead: JSONR[LocalDate] = jsonr[LocalDate] { json =>
+  implicit val localDateRead: JSONR[LocalDate] = read[LocalDate] { json =>
     (
       (json \ "year").validate[Int] |@|
       (json \ "month").validate[Int] |@|
@@ -98,7 +98,7 @@ object JodaTimeExample extends App {
     }
   }
 
-  implicit val localTimeRead: JSONR[LocalTime] = jsonr[LocalTime] { json =>
+  implicit val localTimeRead: JSONR[LocalTime] = read[LocalTime] { json =>
     (
       (json \ "hour").validate[Int] |@|
       (json \ "minute").validate[Int] |@|

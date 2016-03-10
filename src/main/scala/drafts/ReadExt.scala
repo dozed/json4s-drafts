@@ -17,11 +17,11 @@ object ReadExt {
     def read[A: JSONR]: Error \/ A = implicitly[JSONR[A]].read(value).disjunction.leftMap(_.head)
   }
 
-  def jsonr[A](f: JValue => Result[A]) = new JSONR[A] {
+  def read[A](f: JValue => Result[A]) = new JSONR[A] {
     def read(json: JValue) = f(json)
   }
 
-  def read[A](f: JValue => Error \/ A) = new JSONR[A] {
+  def readE[A](f: JValue => Error \/ A) = new JSONR[A] {
     def read(json: JValue) = f(json).validationNel
   }
 
