@@ -33,11 +33,27 @@ object ParseExample2 extends App {
 
   case class MyA(a: Option[String], x: Int)
 
+
+
   implicit val myARead = readE[MyA] { json =>
     for {
       a <- (json \ "a").read[Option[String]]
       x <- (json \ "x").read[Int]
     } yield MyA(a, x)
+  }
+
+  val myARead2 = read[MyA] { json =>
+    (
+      (json \ "a").validate[Option[String]] |@|
+      (json \ "x").validate[Int]
+    ).tupled.map(MyA.tupled)
+  }
+
+  val myARead3: JSONR[(Option[String], Int)] = read[(Option[String], Int)] {
+    for {
+      a <- fieldT[Option[String]](_ \ "a")
+      x <- fieldT[Int](_ \ "x")
+    } yield (a |@| x).tupled
   }
 
   implicit val myAWrite = write[MyA] { myA =>
