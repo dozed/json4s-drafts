@@ -1,12 +1,8 @@
 package drafts
 
-
 object WriteExt {
 
-  import org.json4s.JValue
-  import org.json4s.JNothing
-  import org.json4s.JString
-  import org.json4s.JObject
+  import org.json4s._
   import org.json4s.scalaz.JsonScalaz._
 
   // specific things:
