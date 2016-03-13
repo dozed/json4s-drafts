@@ -6,7 +6,7 @@ object ReadExt {
   import org.json4s.scalaz.JsonScalaz._
 
   import _root_.scalaz._, Scalaz._
-  import shapeless._
+  import shapeless.{:+:, Coproduct, _}
 
   implicit class JArrayOps(j: JArray) {
     def head: JValue = j.children.head
@@ -34,10 +34,9 @@ object ReadExt {
     implicitly[JSONR[A]].read(f(json))
   }
 
-  object JSONRExt extends LabelledProductTypeClassCompanion[JSONR] {
+  object JSONRExt extends LabelledTypeClassCompanion[JSONR] {
 
-    // todo LabelledTypeClass
-    object typeClass extends LabelledProductTypeClass[JSONR] {
+    object typeClass extends LabelledTypeClass[JSONR] {
       def emptyProduct = new JSONR[HNil] {
         def read(value: JValue) = HNil.successNel
       }
@@ -58,6 +57,29 @@ object ReadExt {
 
       def project[F, G](instance: => JSONR[G], to: F => G, from: G => F) = new JSONR[F] {
         def read(v: JValue): Result[F] = instance.read(v) map from
+      }
+
+      // TODO too specific, maybe remove
+      override def coproduct[L, R <: Coproduct](name: String, cl: => JSONR[L], cr: => JSONR[R]): JSONR[:+:[L, R]] = {
+        new JSONR[L :+: R] {
+          override def read(json: JValue): Result[L :+: R] = {
+            (json \ "_tpe").validate[String] match {
+              case Success(tpe) =>
+                if (tpe == name) cl.read(json) map (x => Inl.apply[L, R](x))
+                else cr.read(json) map (x => Inr.apply[L, R](x))
+              case _ =>
+                sys.error("no _tpe flag, not possible to discriminate types")
+            }
+          }
+        }
+      }
+
+      override def emptyCoproduct: JSONR[CNil] = {
+        new JSONR[CNil] {
+          override def read(json: JValue): Result[CNil] = {
+            Fail("", s"Could not read from $json")
+          }
+        }
       }
     }
 

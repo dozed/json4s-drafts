@@ -62,17 +62,13 @@ object WriteExt {
 
   import shapeless._
 
-  object JSONWExt extends LabelledProductTypeClassCompanion[JSONW] {
+  object JSONWExt extends LabelledTypeClassCompanion[JSONW] {
 
-    // todo LabelledTypeClass
-    object typeClass extends LabelledProductTypeClass[JSONW] {
+    object typeClass extends LabelledTypeClass[JSONW] {
       def emptyProduct = new JSONW[HNil] {
         override def write(a: HNil) = JObject()
       }
 
-      // traversing a product
-      // - write field "name" of some object to a field, with tail of other fields
-      // - tail has no acess to the other fields
       def product[F, T <: HList](name: String, sh: JSONW[F], st: JSONW[T]) = new JSONW[F :: T] {
         override def write(value: F :: T): JValue = {
 
@@ -92,6 +88,21 @@ object WriteExt {
       override def project[F, G](instance: => JSONW[G], to: (F) => G, from: (G) => F): JSONW[F] = {
         new JSONW[F] {
           def write(f: F): JValue = instance.write(to(f))
+        }
+      }
+
+      override def coproduct[L, R <: Coproduct](name: String, cl: => JSONW[L], cr: => JSONW[R]): JSONW[L :+: R] = {
+        new JSONW[L :+: R] {
+          override def write(value: L :+: R): JValue = value match {
+            case Inl(l) => cl.write(l)
+            case Inr(r) => cr.write(r)
+          }
+        }
+      }
+
+      override def emptyCoproduct: JSONW[CNil] = {
+        new JSONW[CNil] {
+          override def write(value: CNil): JValue = JNothing
         }
       }
     }
