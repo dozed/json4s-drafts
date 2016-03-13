@@ -59,4 +59,44 @@ object WriteExt {
 
   def writerGen[A]: JSONW[A] = macro Macros.writerGenImpl[A]
 
+
+  import shapeless._
+
+  object JSONWExt extends LabelledProductTypeClassCompanion[JSONW] {
+
+    // todo LabelledTypeClass
+    object typeClass extends LabelledProductTypeClass[JSONW] {
+      def emptyProduct = new JSONW[HNil] {
+        override def write(a: HNil) = JObject()
+      }
+
+      // traversing a product
+      // - write field "name" of some object to a field, with tail of other fields
+      // - tail has no acess to the other fields
+      def product[F, T <: HList](name: String, sh: JSONW[F], st: JSONW[T]) = new JSONW[F :: T] {
+        override def write(value: F :: T): JValue = {
+
+          // is a value
+          val head: JValue = sh.write(value.head)
+
+          // is a JObject
+          val tail: JValue = st.write(value.tail)
+
+          tail match {
+            case x: JObject => JObject((name -> head) :: x.obj)
+            case _ => JObject((name -> head))
+          }
+        }
+      }
+
+      override def project[F, G](instance: => JSONW[G], to: (F) => G, from: (G) => F): JSONW[F] = {
+        new JSONW[F] {
+          def write(f: F): JValue = instance.write(to(f))
+        }
+      }
+    }
+
+  }
+
+
 }
