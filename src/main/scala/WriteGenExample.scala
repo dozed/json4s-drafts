@@ -22,10 +22,10 @@ object WriteGenExample extends App {
 
 
 
-  val tag: Measure => String = typeTagGen[Measure]
+  val tag: Measure => String = ??? // typeTagGen[Measure]
 
-  implicit val writer: JSONW[Gram] = writerGen[Gram]
-  implicit val writer2: JSONW[Contact] = writerGen[Contact]
+  implicit val writer: JSONW[Gram] = ??? // writerGen[Gram]
+  implicit val writer2: JSONW[Contact] = ??? // writerGen[Contact]
 
 
   println(Gram(50).toJson)

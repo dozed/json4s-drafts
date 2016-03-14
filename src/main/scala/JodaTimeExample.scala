@@ -142,8 +142,7 @@ object JodaTimeExample extends App {
 
 
   // generate the writer
-  implicit val datesWrite: JSONW[Dates] = writerGen[Dates]
-
+  implicit val datesWrite: JSONW[Dates] = ??? // writerGen[Dates]
 
   val testJson = Dates(new Duration(10), new Instant(10), new Interval(10, 200), DateTime.now(), DateTime.now().toLocalDate, DateTime.now().toLocalTime).toJson
 
