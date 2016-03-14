@@ -1,12 +1,8 @@
 package drafts
 
-
 object WriteExt {
 
-  import org.json4s.JValue
-  import org.json4s.JNothing
-  import org.json4s.JString
-  import org.json4s.JObject
+  import org.json4s._
   import org.json4s.scalaz.JsonScalaz._
 
   // specific things:
@@ -62,5 +58,56 @@ object WriteExt {
   def typeTagGen[A]: A => String = macro Macros.typeTagGenImpl[A]
 
   def writerGen[A]: JSONW[A] = macro Macros.writerGenImpl[A]
+
+
+  import shapeless._
+
+  object JSONWExt extends LabelledTypeClassCompanion[JSONW] {
+
+    object typeClass extends LabelledTypeClass[JSONW] {
+      def emptyProduct = new JSONW[HNil] {
+        override def write(a: HNil) = JObject()
+      }
+
+      def product[F, T <: HList](name: String, sh: JSONW[F], st: JSONW[T]) = new JSONW[F :: T] {
+        override def write(value: F :: T): JValue = {
+
+          // is a value
+          val head: JValue = sh.write(value.head)
+
+          // is a JObject
+          val tail: JValue = st.write(value.tail)
+
+          tail match {
+            case x: JObject => JObject((name -> head) :: x.obj)
+            case _ => JObject((name -> head))
+          }
+        }
+      }
+
+      override def project[F, G](instance: => JSONW[G], to: (F) => G, from: (G) => F): JSONW[F] = {
+        new JSONW[F] {
+          def write(f: F): JValue = instance.write(to(f))
+        }
+      }
+
+      override def coproduct[L, R <: Coproduct](name: String, cl: => JSONW[L], cr: => JSONW[R]): JSONW[L :+: R] = {
+        new JSONW[L :+: R] {
+          override def write(value: L :+: R): JValue = value match {
+            case Inl(l) => cl.write(l)
+            case Inr(r) => cr.write(r)
+          }
+        }
+      }
+
+      override def emptyCoproduct: JSONW[CNil] = {
+        new JSONW[CNil] {
+          override def write(value: CNil): JValue = JNothing
+        }
+      }
+    }
+
+  }
+
 
 }
