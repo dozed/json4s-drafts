@@ -26,11 +26,6 @@ object coproductReadExample extends App {
   def milliliter(value: Double): Measure = Milliliter(value)
 
 
-  object Measure {
-    implicit val instance = JSONRExt[Measure]
-  }
-
-
   val xs: List[Measure] = List(Gram(10.0), Teaspoon(3))
 
   val json = parseJson(
@@ -46,31 +41,6 @@ object coproductReadExample extends App {
   )
 
 
-  // TODO fix implicit resolution
-  //   val ys = json.validate[Measure]
-  //  println(ys)
-
-
-  val json2 = parseJson(
-    """
-      |{
-      |  "_tpe": "Gram",
-      |  "value": 10.0
-      |}
-    """.stripMargin
-  )
-
-  println(Measure.instance.read(json2))
-
-  val json3 = parseJson(
-    """
-      |{
-      |  "_tpe": "Foo",
-      |  "value": 10.0
-      |}
-    """.stripMargin
-  )
-
-  println(Measure.instance.read(json3))
+  println(json.read[List[Measure]])
 
 }

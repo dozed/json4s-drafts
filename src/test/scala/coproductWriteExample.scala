@@ -23,18 +23,9 @@ object coproductWriteExample extends App {
   def pieces(value: Double): Measure = Pieces(value)
   def milliliter(value: Double): Measure = Milliliter(value)
 
-
-  object Measure {
-    implicit val instance = JSONWExt[Measure]
-  }
-
-  // val tag: Measure => String = typeTagGen[Measure]
-
   println(gram(50).toJson)
   // JObject(List((value,JDouble(50.0))))
 
   println(Gram(50).toJson)
-
-
 
 }
