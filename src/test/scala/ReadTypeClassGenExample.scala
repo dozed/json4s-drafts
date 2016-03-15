@@ -46,6 +46,38 @@ object ReadTypeClassGenExample extends App {
   println(orderJson.read[Order])
   // \/-(Order(2120020,Contact(mail@example.org,List(+2398 2938092, +2398 2938001)),List(Item(foo item,200,1.99), Item(bar item,100,2.5))))
 
+
+  val orderJsonKo = parseJson(
+    """
+      |{
+      |  "orderId": "2120020",
+      |  "contact": {
+      |    "email": "mail@example.org",
+      |    "phone": [ "+2398 2938092", "+2398 2938001" ]
+      |  },
+      |  "items": [
+      |     {
+      |       "label": "foo item",
+      |       "amount": 200
+      |     },
+      |     {
+      |       "label": "bar item",
+      |       "amount": 100,
+      |       "price": 2.50
+      |     }
+      |  ]
+      |}
+    """.stripMargin)
+
+  // TODO improve error reporting and handling
+
+  println(orderJsonKo.validate[Order])
+  // Failure(NonEmptyList(UnexpectedJSONError(JNothing,class org.json4s.JsonAST$JDouble)))
+
+
+
+
+
 }
 
 
