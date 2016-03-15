@@ -7,7 +7,7 @@ import org.json4s.scalaz.JsonScalaz._
 
 import _root_.scalaz._, Scalaz._
 
-object ParseExample3 extends App {
+object ReadExample3 extends App {
 
   val json =
       """

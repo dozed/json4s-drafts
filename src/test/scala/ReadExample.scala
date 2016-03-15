@@ -1,5 +1,5 @@
 
-object ParseExample extends App {
+object ReadExample extends App {
 
   import org.json4s._
   import org.json4s.jackson.parseJson

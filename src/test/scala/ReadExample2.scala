@@ -1,5 +1,5 @@
 
-object ParseExample2 extends App {
+object ReadExample2 extends App {
 
   import org.json4s._
   import drafts.WriteExt._
