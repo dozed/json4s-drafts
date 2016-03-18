@@ -1,13 +1,16 @@
 package drafts
 
-object Macros {
+import scala.reflect.macros.whitebox
+import org.json4s.JValue
 
-  import scala.reflect.macros.blackbox
+import macrocompat.bundle
 
-  import org.json4s.JValue
-  import org.json4s.scalaz.JsonScalaz._
+@bundle
+class Macros(val c: whitebox.Context) {
 
-  def typeTagGenImpl[T: c.WeakTypeTag](c: blackbox.Context): c.Expr[T => String] = {
+  import c.universe._
+
+  def typeTagGenImpl[T: c.WeakTypeTag]: Tree = {
     import c.universe._
     val tpe = weakTypeOf[T].typeSymbol
     tpe.typeSignature // SI-7046 workaround
@@ -16,10 +19,10 @@ object Macros {
       cq"""x:${x.asClass} => ${x.fullName}"""
     }.toList
 
-    c.Expr[T => String](q"""(t: ${tpe.asClass}) => t match { case ..$names }""")
+    q"""(t: ${tpe.asClass}) => t match { case ..$names }"""
   }
 
-  def writerGenImpl[T: c.WeakTypeTag](c: blackbox.Context): c.Expr[JSONW[T]] = {
+  def writerGenImpl[T: c.WeakTypeTag]: Tree = {
     import c.universe._
     val tpe = weakTypeOf[T]
 
@@ -33,13 +36,11 @@ object Macros {
           c.Expr[(String, JValue)](q"""(${field.name.decodedName.toString}, implicitly[org.json4s.scalaz.JsonScalaz.JSONW[${field.typeSignature}]].write(t.${field.name.toTermName}))""")
         }
 
-        c.Expr[JSONW[T]](
-          q"""
-           new org.json4s.scalaz.JsonScalaz.JSONW[$tpe] {
-             override def write(t: $tpe) = org.json4s.JObject(List(..$fields))
-           }
-           """
-        )
+        q"""
+         new org.json4s.scalaz.JsonScalaz.JSONW[$tpe] {
+           override def write(t: $tpe) = org.json4s.JObject(List(..$fields))
+         }
+         """
       }
       case None => c.abort(c.enclosingPosition, "Could not identify primary constructor for " + tpe)
     }
