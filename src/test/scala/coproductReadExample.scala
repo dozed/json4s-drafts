@@ -3,8 +3,6 @@ import scalaz._, Scalaz._
 object coproductReadExample extends App {
 
   import drafts.ReadExt._
-  import drafts.ReadExt.JSONRExt
-  import drafts.ReadExt.JSONRExt._
   import org.json4s._
   import org.json4s.scalaz.JsonScalaz._
   import org.json4s.jackson.parseJson

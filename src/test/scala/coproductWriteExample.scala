@@ -3,8 +3,6 @@
 object coproductWriteExample extends App {
 
   import drafts.WriteExt._
-  import drafts.WriteExt.JSONWExt
-  import drafts.WriteExt.JSONWExt._
   import org.json4s.scalaz.JsonScalaz._
 
 

@@ -1,6 +1,4 @@
 import drafts.ReadExt._
-import drafts.ReadExt.JSONRExt
-import drafts.ReadExt.JSONRExt._
 import org.json4s._
 import org.json4s.jackson.parseJson
 import org.json4s.scalaz.JsonScalaz._

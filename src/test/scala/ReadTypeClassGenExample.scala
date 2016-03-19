@@ -6,8 +6,6 @@ object ReadTypeClassGenExample extends App {
   import org.json4s.scalaz.JsonScalaz._
   import _root_.scalaz._, Scalaz._
   import drafts.ReadExt._
-  import drafts.ReadExt.JSONRExt
-  import drafts.ReadExt.JSONRExt._
 
   val orderDoc =
     """
