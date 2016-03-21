@@ -1,6 +1,7 @@
 
 object ContextDependentWriterExample extends App {
 
+  import org.json4s.scalaz.JsonScalaz._
   import org.json4s.jackson._
   import drafts.WriteExt._
 

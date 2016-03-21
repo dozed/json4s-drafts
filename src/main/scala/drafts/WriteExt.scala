@@ -10,6 +10,14 @@ object WriteExt {
   // - type tags
   // - context-dependent writer, write an A with context C (tagged tuple2)
 
+  implicit def jvalueWriter[A <: JValue] = write[A](identity)
+
+  implicit class WriterOps[A](a: A) {
+    def toJson(implicit w: JSONW[A]): JValue = w.write(a)
+
+    def toJson[C](c: C)(implicit w: JSONW[JsonWriterContext[C, A]]) = w.write(JsonWriterContext(c, a))
+  }
+
   case class JsonWriterContext[C, A](a: (C, A))
 
   object write {
@@ -44,15 +52,6 @@ object WriteExt {
         case _ => left
       }
     }
-  }
-
-  implicit def jvalueWriter[A <: JValue] = write[A](identity)
-
-  // direct writers
-  implicit class WriterOps[A](a: A) {
-    def toJson(implicit w: JSONW[A]): JValue = w.write(a)
-
-    def toJson[C](c: C)(implicit w: JSONW[JsonWriterContext[C, A]]) = w.write(JsonWriterContext(c, a))
   }
 
 

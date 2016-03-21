@@ -6,6 +6,10 @@ import std.option._
 import syntax.applicative._
 import syntax.validation._
 
+import shapeless._
+import shapeless.ops.coproduct.Inject
+import shapeless.Coproduct
+import shapeless.:+:
 
 trait Types extends Base {
   type Result[+A] = ValidationNel[Error, A]
@@ -35,10 +39,6 @@ trait Types extends Base {
   }
 
   trait JSON[A] extends JSONR[A] with JSONW[A]
-
-  import shapeless._
-  import shapeless.ops.coproduct.Inject
-  import shapeless.Coproduct
 
   object JSONR extends LabelledTypeClassCompanion[JSONR] {
 
@@ -92,6 +92,7 @@ trait Types extends Base {
   }
 
 
+  // TODO make optional
   object JSONW extends LabelledTypeClassCompanion[JSONW] {
 
     object typeClass extends LabelledTypeClass[JSONW] {
@@ -147,8 +148,8 @@ trait Types extends Base {
     def validate[A: JSONR]: ValidationNel[Error, A] = implicitly[JSONR[A]].read(json)
     def read[A: JSONR]: Error \/ A = implicitly[JSONR[A]].read(json).disjunction.leftMap(_.head)
 
-    def validateC[T, C <: Coproduct](implicit read: JSONR[T], inj: Inject[C, T]): Result[C] = {
-      read.read(json).map(t => Coproduct[C](t))
+    def validateC[A:JSONR, C <: Coproduct](implicit inj: Inject[C, A]): Result[C] = {
+      implicitly[JSONR[A]].read(json).map(t => Coproduct[C](t))
     }
   }
 

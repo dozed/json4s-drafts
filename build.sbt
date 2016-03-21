@@ -12,7 +12,6 @@ resolvers ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "org.json4s" %% "json4s-scalaz" % "3.3.0",
   "org.json4s" %% "json4s-jackson" % "3.3.0",
   "joda-time" % "joda-time" % "2.9.2",
   "com.chuusai" %% "shapeless" % "2.2.5",
