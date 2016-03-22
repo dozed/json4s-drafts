@@ -58,13 +58,8 @@ object JodaTimeExample extends App {
 
   // JSONR[A] reader typeclass from JValue => ValidationNel[Error, A] function
 
-  implicit val durationRead: JSONR[Duration] = read[Duration] { json =>
-    json.validate[Int] map (x => new Duration(x))
-  }
-
-  implicit val instantRead: JSONR[Instant] = read[Instant] { json =>
-    json.validate[Int] map (x => new Instant(x))
-  }
+  implicit val durationRead: JSONR[Duration] = readL[Int] map (x => new Duration(x))
+  implicit val instantRead: JSONR[Instant] = readL[Int] map (x => new Instant(x))
 
   implicit val intervalRead: JSONR[Interval] = read[Interval] { json =>
     (

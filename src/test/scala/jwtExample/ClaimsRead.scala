@@ -3,8 +3,7 @@ package jwtExample
 import shapeless.newtype._
 import shapeless.{:+:, Coproduct, _}
 
-import _root_.scalaz._
-import Scalaz._
+import scalaz._, Scalaz._
 import org.json4s._
 import org.json4s.ext.scalaz.JsonScalaz._
 import org.json4s.jackson.{compactJson, parseJson}
