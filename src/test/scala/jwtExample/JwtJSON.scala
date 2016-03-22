@@ -12,7 +12,6 @@ object JwtJSON {
 
   import JwtTypes._
 
-  // read for newtype
   implicit lazy val readAud =
     readL[List[String]].map(x => Claim.Aud(stringOrList(x))) orElse
       readL[String].map(x => Claim.Aud(stringOrList(x)))
@@ -28,16 +27,15 @@ object JwtJSON {
     case (key, value) => claim(Custom(key, compactJson(value))).successNel
   }
 
-  // TODO Any -> Claim
-  val writeClaim: Any => (String, JValue) = {
-    case x:Claim.Iss => ("iss", x.toJson)
-    case x:Claim.Sub => ("sub", x.toJson)
-    case x:Claim.Aud => ("aud", x.toJson)
-    case x:Claim.Exp => ("exp", x.toJson)
-    case x:Claim.Nbf => ("nbf", x.toJson)
-    case x:Claim.Iat => ("iat", x.toJson)
-    case x:Claim.Jti => ("jti", x.toJson)
-    case Custom(key, value) => (key, parseJson(value))
+  val writeClaim: Claim => (String, JValue) = {
+    case Claim.Iss(x) => ("iss", x.toJson)
+    case Claim.Sub(x) => ("sub", x.toJson)
+    case Claim.Aud(x) => ("aud", x.toJson)
+    case Claim.Exp(x) => ("exp", x.toJson)
+    case Claim.Nbf(x) => ("nbf", x.toJson)
+    case Claim.Iat(x) => ("iat", x.toJson)
+    case Claim.Jti(x) => ("jti", x.toJson)
+    case Inr(Inr(Inr(Inr(Inr(Inr(Inr(Inl(Custom(key, value))))))))) => (key, parseJson(value))
   }
 
   implicit lazy val claimsRead = read[List[Claim]] {

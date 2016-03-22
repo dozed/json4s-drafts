@@ -28,7 +28,9 @@ object Jwt extends App {
       |{
       |  "iss": "joe",
       |  "exp": 1300819380,
-      |  "http://example.com/is_root": true
+      |  "http://example.com/is_root": true,
+      |  "view": [100,200,300],
+      |  "admin": [100,200,300]
       |}
     """.stripMargin)
 
@@ -46,7 +48,9 @@ object Jwt extends App {
   println(x)
 
   // TODO compiler hangs
-  // println(x.toJson)
+  // x.toJson
+
+  println((x getOrElse ???).toJson)
 
 }
 

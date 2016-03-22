@@ -98,13 +98,62 @@ trait ClaimsTypes {
     type Iat = Newtype[Long, IatOps]
     type Jti = Newtype[String, JtiOps]
 
-    def Iss(s: String): Iss = newtype(s)
-    def Sub(s: String): Sub = newtype(s)
-    def Aud(s: StringOrList): Aud = newtype(s)
-    def Exp(s: Long): Exp = newtype(s)
-    def Nbf(s: Long): Nbf = newtype(s)
-    def Iat(s: Long): Iat = newtype(s)
-    def Jti(s: String): Jti = newtype(s)
+    object Iss {
+      def apply(s: String): Iss = newtype(s)
+      def unapply(s: Claim): Option[Iss] = s match {
+        case Inl(iss) => iss.some
+        case _ => none
+      }
+    }
+
+    object Sub {
+      def apply(s: String): Sub = newtype(s)
+      def unapply(c: Claim): Option[Sub] = c match {
+        case Inr(Inl(v)) => v.some
+        case _ => none
+      }
+    }
+    
+    object Aud {
+      def apply(s: StringOrList): Aud = newtype(s)
+      def unapply(c: Claim): Option[Aud] = c match {
+        case Inr(Inr(Inl(v))) => v.some
+        case _ => none
+      }
+    }
+    
+    object Exp {
+      def apply(s: Long): Exp = newtype(s)
+      def unapply(c: Claim): Option[Exp] = c match {
+        case Inr(Inr(Inr(Inl(v)))) => v.some
+        case _ => none
+      }
+    }
+    
+    object Nbf {
+      def apply(s: Long): Nbf = newtype(s)
+      def unapply(c: Claim): Option[Nbf] = c match {
+        case Inr(Inr(Inr(Inr(Inl(v))))) => v.some
+        case _ => none
+      }
+    }
+    
+    object Iat {
+      def apply(s: Long): Iat = newtype(s)
+      def unapply(c: Claim): Option[Iat] = c match {
+        case Inr(Inr(Inr(Inr(Inr(Inl(v)))))) => v.some
+        case _ => none
+      }
+    }
+    
+    object Jti {
+      def apply(s: String): Jti = newtype(s)
+      def unapply(c: Claim): Option[Jti] = c match {
+        case Inr(Inr(Inr(Inr(Inr(Inr(Inl(v))))))) => v.some
+        case _ => none
+      }
+    }
+
 
   }
 
