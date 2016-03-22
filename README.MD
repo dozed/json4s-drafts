@@ -15,6 +15,8 @@ Adds:
 ### Using a small DSL
 
 ```scala
+import org.json4s.ext.scalaz.JsonScalaz._
+
 case class Contact(email: String, phone: List[String])
 case class Item(label: String, amount: Double, price: Double)
 case class Order(orderId: String, contact: Contact, items: List[Item])
