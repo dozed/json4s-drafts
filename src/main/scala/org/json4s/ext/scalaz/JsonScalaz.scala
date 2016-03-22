@@ -54,6 +54,14 @@ trait Types extends Base {
     }
   }
 
+  implicit val jsonwContravariant = new Contravariant[JSONW] {
+    override def contramap[A, B](r: JSONW[A])(f: (B) => A): JSONW[B] = new JSONW[B] {
+      override def write(value: B): JValue = {
+        r.write(f(value))
+      }
+    }
+  }
+
   object JSONR extends LabelledTypeClassCompanion[JSONR] {
 
     object typeClass extends LabelledTypeClass[JSONR] {
@@ -188,4 +196,4 @@ trait Types extends Base {
     JObject(fields.toList.map { case (n, v) => JField(n, v) })
 }
 
-object JsonScalaz extends Types with Lifting with Base with Dsl with ReadExt with WriteExt with Tuples
+object JsonScalaz extends Types with Lifting with Base with Dsl with ReadExt with WriteExt with Tuples with JsonShapeless

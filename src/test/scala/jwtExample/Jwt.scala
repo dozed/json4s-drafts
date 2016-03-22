@@ -11,8 +11,8 @@ import scalaz._, Scalaz._
 
 object Jwt extends App {
 
-  import ClaimsTypes._
-  import ClaimsRead._
+  import JwtTypes._
+  import JwtJSON._
 
   val header = parseJson(
     """
@@ -44,6 +44,9 @@ object Jwt extends App {
   val x = claimsJson.read[List[Claim]]
 
   println(x)
+
+  // TODO compiler hangs
+  // println(x.toJson)
 
 }
 
