@@ -14,8 +14,8 @@ trait JsonShapeless { self: Types =>
     read.map((x: A) => newtype[A, Ops](x))
   }
 
-  implicit def writeNewtype[A, Ops <: { def value: A }](implicit write: JSONW[A], mk: A => Ops): JSONW[Newtype[A, Ops]] = {
-    write.contramap[Newtype[A, Ops]](a => a.value)
+  implicit def writeNewtype[A, Ops <: { def value: A }](implicit write: Lazy[JSONW[A]], mk: A => Ops): JSONW[Newtype[A, Ops]] = {
+    write.value.contramap[Newtype[A, Ops]](a => a.value)
   }
 
   // JSON for a Coproduct
@@ -23,11 +23,11 @@ trait JsonShapeless { self: Types =>
     override def write(value: CNil): JValue = JNothing
   }
 
-  implicit def writeCCons[L, R <: Coproduct](implicit cl: JSONW[L], cr: JSONW[R]): JSONW[L :+: R] = {
+  implicit def writeCCons[L, R <: Coproduct](implicit cl: Lazy[JSONW[L]], cr: Lazy[JSONW[R]]): JSONW[L :+: R] = {
     new JSONW[L :+: R] {
       override def write(value: L :+: R): JValue = value match {
-        case Inl(l) => cl.write(l)
-        case Inr(r) => cr.write(r)
+        case Inl(l) => cl.value.write(l)
+        case Inr(r) => cr.value.write(r)
       }
     }
   }

@@ -24,7 +24,7 @@ object JwtJSON {
     case ("nbf", v) => v.validateC[Claim.Nbf, Claim]
     case ("iat", v) => v.validateC[Claim.Iat, Claim]
     case ("jti", v) => v.validateC[Claim.Jti, Claim]
-    case (key, value) => claim(Custom(key, compactJson(value))).successNel
+    case (key, value) => claim(Claim.Custom(key, compactJson(value))).successNel
   }
 
   val writeClaim: Claim => (String, JValue) = {
@@ -35,7 +35,7 @@ object JwtJSON {
     case Claim.Nbf(x) => ("nbf", x.toJson)
     case Claim.Iat(x) => ("iat", x.toJson)
     case Claim.Jti(x) => ("jti", x.toJson)
-    case Inr(Inr(Inr(Inr(Inr(Inr(Inr(Inl(Custom(key, value))))))))) => (key, parseJson(value))
+    case Inr(Inr(Inr(Inr(Inr(Inr(Inr(Inl(Claim.Custom(key, value))))))))) => (key, parseJson(value))
   }
 
   implicit lazy val claimsRead = read[List[Claim]] {

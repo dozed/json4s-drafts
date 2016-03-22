@@ -16,9 +16,9 @@ trait AlgorithmTypes {
 
 
   implicit val algorithmShows = Show.show[Algorithm] {
-    case Algorithm.HS256 => "HS256"
-    case Algorithm.HS384 => "HS384"
-    case Algorithm.HS512 => "HS512"
+    case Algorithm.HS256 => "HmacSHA256"
+    case Algorithm.HS384 => "HmacSHA384"
+    case Algorithm.HS512 => "HmacSHA512"
     case Algorithm.NONE => "none"
   }
 
@@ -91,9 +91,6 @@ trait ClaimsTypes {
   import Claim._
 
 
-  // user-defined claims
-  case class Custom(name: String, value: String)
-
   // StringOrUri
   type StringOrList = Coproduct.`String, List[String]`.T
   // type StringOrList = String :+: List[String] :+: CNil
@@ -117,8 +114,12 @@ trait ClaimsTypes {
     type Iat = Newtype[Long, IatOps]
     type Jti = Newtype[String, JtiOps]
 
+    // user-defined claims
+    case class Custom(name: String, value: String)
+
     object Iss {
       def apply(s: String): Iss = newtype(s)
+      def c(s: String): Claim = Coproduct[Claim](newtype(s): Iss)
       def unapply(s: Claim): Option[Iss] = s match {
         case Inl(iss) => iss.some
         case _ => none

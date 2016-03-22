@@ -19,9 +19,9 @@ object JwtExample2 extends App {
     List(
       Coproduct[Claim](Claim.Iss("joe")),
       Coproduct[Claim](Claim.Exp(1300819380)),
-      Coproduct[Claim](Custom("http://example.com/is_root", "true")),
-      Coproduct[Claim](Custom("view", "[100, 200, 300]")),
-      Coproduct[Claim](Custom("admin", "[100, 200, 300]")),
+      Coproduct[Claim](Claim.Custom("http://example.com/is_root", "true")),
+      Coproduct[Claim](Claim.Custom("view", "[100, 200, 300]")),
+      Coproduct[Claim](Claim.Custom("admin", "[100, 200, 300]")),
       Coproduct[Claim](Claim.Aud(Coproduct[StringOrList](List("foo", "bar")))),
       Coproduct[Claim](Claim.Aud(Coproduct[StringOrList]("foo")))
     )
