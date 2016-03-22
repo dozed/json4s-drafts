@@ -1,14 +1,14 @@
+import org.json4s._
+import org.json4s.jackson.parseJson
+import org.json4s.ext.scalaz.JsonScalaz._
+
+import shapeless._
+import newtype._
+
+import scalaz._, Scalaz._
 
 object ValidationExample extends App {
 
-  import drafts.ReadExt._
-  import org.json4s._
-  import org.json4s.jackson.parseJson
-  import org.json4s.scalaz.JsonScalaz._
-  import shapeless._
-  import newtype._
-
-  import _root_.scalaz._, Scalaz._
 
   type PhoneNumber = Newtype[String, PhoneNumberOps]
   def PhoneNumber(s: String) : PhoneNumber = newtype(s)

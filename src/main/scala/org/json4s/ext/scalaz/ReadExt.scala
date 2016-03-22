@@ -1,20 +1,15 @@
-package drafts
+package org.json4s.ext.scalaz
 
-object ReadExt {
+import org.json4s._
 
-  import org.json4s._
-  import org.json4s.scalaz.JsonScalaz._
+trait ReadExt { self: Types =>
 
-  import shapeless.{:+:, Coproduct, _}
   import shapeless.newtype._
-  import shapeless.syntax.typeable._
   import shapeless.ops.coproduct.Inject
+  import shapeless.{Coproduct, _}
 
-  import _root_.scalaz._, Scalaz._
-
-  def unexpected[A](was: JValue, expected: Class[_ <: JValue]): Result[A] = {
-    (UnexpectedJSONError(was, expected):Error).failureNel
-  }
+  import _root_.scalaz._
+  import Scalaz._
 
   def read[A](f: JValue => Result[A]) = new JSONR[A] {
     def read(json: JValue) = f(json)
@@ -51,15 +46,7 @@ object ReadExt {
     }
   }
 
-  implicit val jsonrFunctor = new Functor[JSONR] {
-    override def map[A, B](fa: JSONR[A])(f: (A) => B): JSONR[B] = new JSONR[B] {
-      override def read(json: JValue): Result[B] = {
-        fa.read(json) map f
-      }
-    }
-  }
-
-  implicit class JSONRExt2[A](fa: JSONR[A]) {
+  implicit class JSONRExt[A](fa: JSONR[A]) {
     def orElse[B >: A](fa2: JSONR[B]): JSONR[B] = new JSONR[B] {
       override def read(json: JValue): Result[B] = {
         fa.read(json) orElse fa2.read(json)

@@ -1,12 +1,11 @@
+import org.json4s._
+import org.json4s.ext.scalaz.JsonScalaz._
+import org.json4s.jackson.parseJson
+
+import scalaz._, Scalaz._
 
 object ReadExample2 extends App {
 
-  import org.json4s._
-  import drafts.WriteExt._
-  import drafts.ReadExt._
-  import org.json4s.jackson.parseJson
-  import org.json4s.scalaz.JsonScalaz._
-  import _root_.scalaz._, Scalaz._
 
 
   val str =

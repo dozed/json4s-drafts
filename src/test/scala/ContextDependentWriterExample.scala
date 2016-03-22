@@ -1,9 +1,8 @@
+import org.json4s.jackson._
+import org.json4s.ext.scalaz.JsonScalaz._
 
 object ContextDependentWriterExample extends App {
 
-  import org.json4s.scalaz.JsonScalaz._
-  import org.json4s.jackson._
-  import drafts.WriteExt._
 
   case class Document(id: String)
   case class Item(id: String, text: String)

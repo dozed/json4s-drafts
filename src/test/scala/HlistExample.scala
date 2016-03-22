@@ -1,16 +1,11 @@
+import org.json4s._
+import org.json4s.jackson._
+import org.json4s.ext.scalaz.JsonScalaz._
+
+import shapeless._
+import scalaz._, Scalaz._
 
 object HlistExample extends App {
-
-  import org.json4s._
-  import org.json4s.jackson._
-  import org.json4s.scalaz.JsonScalaz._
-  import shapeless._
-  import _root_.scalaz._, Scalaz._
-
-  import drafts.ReadExt._
-
-
-
 
   object ProductReader extends ProductTypeClassCompanion[JSONR] {
     override val typeClass: ProductTypeClass[JSONR] = new ProductTypeClass[JSONR] {

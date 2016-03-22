@@ -1,13 +1,13 @@
 package jwtExample
 
-import drafts.ReadExt.{unexpected, _}
 import shapeless.newtype._
 import shapeless.{:+:, Coproduct, _}
 
-import scalaz.Scalaz._
 import org.json4s._
+import org.json4s.ext.scalaz.JsonScalaz._
 import org.json4s.jackson.{compactJson, parseJson}
-import org.json4s.scalaz.JsonScalaz._
+
+import scalaz._, Scalaz._
 
 object Jwt extends App {
 

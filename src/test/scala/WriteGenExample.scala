@@ -1,10 +1,7 @@
-
+import drafts.Macros
+import org.json4s.ext.scalaz.JsonScalaz._
 
 object WriteGenExample extends App {
-
-  import drafts.WriteExt._
-  import org.json4s.scalaz.JsonScalaz._
-
 
   case class Contact(email: String, phone: List[String])
   case class Item(label: String, amount: Double, price: Double)
@@ -12,7 +9,7 @@ object WriteGenExample extends App {
 
 
 
-  implicit val writer2: JSONW[Contact] = writerGen[Contact]
+  implicit val writer2: JSONW[Contact] = Macros.writerGen[Contact]
 
 
   println(Contact("foo@example.org", List("+123", "+1293")).toJson)

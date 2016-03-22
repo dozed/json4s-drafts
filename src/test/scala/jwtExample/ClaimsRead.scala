@@ -1,14 +1,13 @@
 package jwtExample
 
-import drafts.ReadExt.{unexpected, _}
 import shapeless.newtype._
 import shapeless.{:+:, Coproduct, _}
 
-import _root_.scalaz._, Scalaz._
-
+import _root_.scalaz._
+import Scalaz._
 import org.json4s._
+import org.json4s.ext.scalaz.JsonScalaz._
 import org.json4s.jackson.{compactJson, parseJson}
-import org.json4s.scalaz.JsonScalaz._
 
 object ClaimsRead {
 
@@ -32,7 +31,7 @@ object ClaimsRead {
 
   implicit lazy val claimsRead = read[List[Claim]] {
     case x: JObject => x.obj.map(x => readClaim.tupled(x)).sequence[Result, Claim]
-    case json => unexpected(json, classOf[JObject])
+    case json => Fail.unexpected(json, classOf[JObject])
   }
 
 }

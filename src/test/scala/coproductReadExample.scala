@@ -1,11 +1,11 @@
+import org.json4s._
+import org.json4s.jackson.parseJson
+import org.json4s.ext.scalaz.JsonScalaz._
+
 import scalaz._, Scalaz._
 
 object coproductReadExample extends App {
 
-  import drafts.ReadExt._
-  import org.json4s._
-  import org.json4s.scalaz.JsonScalaz._
-  import org.json4s.jackson.parseJson
 
 
   sealed trait Measure

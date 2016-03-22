@@ -1,14 +1,13 @@
+import org.json4s._
+import org.json4s.jackson.parseJson
+import org.json4s.ext.scalaz.JsonScalaz._
+
+import shapeless._
+import newtype._
+
+import scalaz._, Scalaz._
+
 object NewTypeExample extends App {
-
-  import drafts.ReadExt._
-  import org.json4s._
-  import org.json4s.jackson.parseJson
-  import org.json4s.scalaz.JsonScalaz._
-  import shapeless._
-  import newtype._
-
-  import _root_.scalaz._
-  import Scalaz._
 
   type Email = Newtype[String, EmailOps]
   def Email(s : String) : Email = newtype(s)

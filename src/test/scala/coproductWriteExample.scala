@@ -1,10 +1,6 @@
-
+import org.json4s.ext.scalaz.JsonScalaz._
 
 object coproductWriteExample extends App {
-
-  import drafts.WriteExt._
-  import org.json4s.scalaz.JsonScalaz._
-
 
   sealed trait Measure
   case class Gram(value: Double) extends Measure

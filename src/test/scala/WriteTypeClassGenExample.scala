@@ -1,13 +1,6 @@
-
+import org.json4s.ext.scalaz.JsonScalaz._
 
 object WriteTypeClassGenExample extends App {
-
-  import drafts.WriteExt._
-  import org.json4s._
-  import org.json4s.scalaz.JsonScalaz._
-
-  import _root_.scalaz._, Scalaz._
-
 
   case class Contact(email: String, phone: List[String])
   case class Item(label: String, amount: Double, price: Double)

@@ -1,10 +1,7 @@
+import org.json4s.jackson._
+import org.json4s.ext.scalaz.JsonScalaz._
 
 object WriteExample extends App {
-
-  import org.json4s.jackson._
-  import org.json4s.scalaz.JsonScalaz._
-  import drafts.WriteExt._
-  import _root_.scalaz._, Scalaz._
 
 
   case class Contact(email: String, phone: List[String])

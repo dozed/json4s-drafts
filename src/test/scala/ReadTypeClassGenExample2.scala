@@ -1,11 +1,9 @@
-
+import org.json4s._
+import org.json4s.jackson.prettyJson
+import org.json4s.ext.scalaz.JsonScalaz._
 
 object ReadTypeClassGenExample2 extends App {
 
-  import org.json4s._
-  import org.json4s.jackson.prettyJson
-  import org.json4s.scalaz.JsonScalaz._
-  import drafts.WriteExt._
 
   case class QueryParam(name: String, value: String)
   // TODO expires as value of type Any crashes the compiler

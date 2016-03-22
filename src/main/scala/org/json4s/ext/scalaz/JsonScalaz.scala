@@ -1,11 +1,11 @@
-package org.json4s
-package scalaz
+package org.json4s.ext.scalaz
 
-import _root_.scalaz._
+import org.json4s._
+
+import scalaz._
 import std.option._
 import syntax.applicative._
 import syntax.validation._
-
 import shapeless._
 import shapeless.ops.coproduct.Inject
 import shapeless.Coproduct
@@ -19,12 +19,18 @@ trait Types extends Base {
   case class NoSuchFieldError(name: String, json: JValue) extends Error
   case class UncategorizedError(key: String, desc: String, args: List[Any]) extends Error
 
-  case object Fail {
-    def apply[A](key: String, desc: String, args: List[Any]): Result[A] = 
-      UncategorizedError(key, desc, args).failureNel
+  object Fail {
+    def apply[A](key: String, desc: String, args: List[Any]): Result[A] =
+      (UncategorizedError(key, desc, args):Error).failureNel
 
-    def apply[A](key: String, desc: String): Result[A] = 
-      UncategorizedError(key, desc, Nil).failureNel
+    def apply[A](key: String, desc: String): Result[A] =
+      (UncategorizedError(key, desc, Nil):Error).failureNel
+
+    def unexpected[A](was: JValue, expected: Class[_ <: JValue]): Result[A] =
+      (UnexpectedJSONError(was, expected):Error).failureNel
+
+    def noSuchField[A](name: String, json: JValue): Result[A] =
+      (NoSuchFieldError(name, json):Error).failureNel
   }
 
   implicit def JValueMonoid: Monoid[JValue] = Monoid.instance(_ ++ _, JNothing)
@@ -39,6 +45,14 @@ trait Types extends Base {
   }
 
   trait JSON[A] extends JSONR[A] with JSONW[A]
+
+  implicit val jsonrFunctor = new Functor[JSONR] {
+    override def map[A, B](fa: JSONR[A])(f: (A) => B): JSONR[B] = new JSONR[B] {
+      override def read(json: JValue): Result[B] = {
+        fa.read(json) map f
+      }
+    }
+  }
 
   object JSONR extends LabelledTypeClassCompanion[JSONR] {
 
@@ -161,8 +175,8 @@ trait Types extends Base {
       fs.find(_._1 == name)
         .map(f => implicitly[JSONR[A]].read(f._2))
         .orElse(implicitly[JSONR[A]].read(JNothing).fold(_ => none, x => some(Success(x))))
-        .getOrElse(NoSuchFieldError(name, json).failureNel)
-    case x => UnexpectedJSONError(x, classOf[JObject]).failureNel
+        .getOrElse(Fail.noSuchField(name, json))
+    case x => Fail.unexpected(x, classOf[JObject])
   }
 
   type EitherNel[+a] = NonEmptyList[Error] \/ a
@@ -174,4 +188,4 @@ trait Types extends Base {
     JObject(fields.toList.map { case (n, v) => JField(n, v) })
 }
 
-object JsonScalaz extends Types with Lifting with Base with org.json4s.scalaz.Tuples
+object JsonScalaz extends Types with Lifting with Base with Dsl with ReadExt with WriteExt with Tuples

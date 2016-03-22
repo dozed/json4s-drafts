@@ -1,9 +1,8 @@
-import drafts.ReadExt._
 import org.json4s._
-import org.json4s.jackson.parseJson
-import org.json4s.scalaz.JsonScalaz._
+import org.json4s.jackson._
+import org.json4s.ext.scalaz.JsonScalaz._
 
-import _root_.scalaz._, Scalaz._
+import scalaz._, Scalaz._
 
 object ReadExample3 extends App {
 

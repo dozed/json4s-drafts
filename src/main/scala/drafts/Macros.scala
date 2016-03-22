@@ -2,8 +2,19 @@ package drafts
 
 import scala.reflect.macros.whitebox
 import org.json4s.JValue
+import org.json4s.ext.scalaz.JsonScalaz._
 
 import macrocompat.bundle
+
+object Macros {
+
+  import scala.language.experimental.macros
+
+  def typeTagGen[A]: A => String = macro Macros.typeTagGenImpl[A]
+
+  def writerGen[A]: JSONW[A] = macro Macros.writerGenImpl[A]
+
+}
 
 @bundle
 class Macros(val c: whitebox.Context) {
@@ -33,11 +44,11 @@ class Macros(val c: whitebox.Context) {
     primaryConstructor match {
       case Some(constructor) => {
         val fields = constructor.paramLists.flatten.map {field =>
-          c.Expr[(String, JValue)](q"""(${field.name.decodedName.toString}, implicitly[org.json4s.scalaz.JsonScalaz.JSONW[${field.typeSignature}]].write(t.${field.name.toTermName}))""")
+          c.Expr[(String, JValue)](q"""(${field.name.decodedName.toString}, implicitly[org.json4s.ext.scalaz.JsonScalaz.JSONW[${field.typeSignature}]].write(t.${field.name.toTermName}))""")
         }
 
         q"""
-         new org.json4s.scalaz.JsonScalaz.JSONW[$tpe] {
+         new org.json4s.ext.scalaz.JsonScalaz.JSONW[$tpe] {
            override def write(t: $tpe) = org.json4s.JObject(List(..$fields))
          }
          """
