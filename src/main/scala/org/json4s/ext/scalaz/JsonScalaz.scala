@@ -36,8 +36,17 @@ trait Types extends Base {
   implicit def JValueMonoid: Monoid[JValue] = Monoid.instance(_ ++ _, JNothing)
   implicit def JValueEqual: Equal[JValue] = Equal.equalA
 
-  trait JSONR[A] {
+  trait JSONR[A] { self =>
     def read(json: JValue): Result[A]
+
+    def emap[B](f: A => Result[B]): JSONR[B] = new JSONR[B] {
+      override def read(json: JValue): Result[B] = {
+        self.read(json) match {
+          case Success(a) => f(a)
+          case f@Failure(error) => f
+        }
+      }
+    }
   }
 
   trait JSONW[A] {
@@ -46,10 +55,23 @@ trait Types extends Base {
 
   trait JSON[A] extends JSONR[A] with JSONW[A]
 
-  implicit val jsonrFunctor = new Functor[JSONR] {
+  implicit val jsonrMonad = new Monad[JSONR] {
     override def map[A, B](fa: JSONR[A])(f: (A) => B): JSONR[B] = new JSONR[B] {
       override def read(json: JValue): Result[B] = {
         fa.read(json) map f
+      }
+    }
+
+    override def point[A](a: => A): JSONR[A] = new JSONR[A] {
+      override def read(json: JValue): Result[A] = a.successNel
+    }
+
+    override def bind[A, B](fa: JSONR[A])(f: (A) => JSONR[B]): JSONR[B] = new JSONR[B] {
+      override def read(json: JValue): Result[B] = {
+        fa.read(json) match {
+          case Success(a) => f(a).read(json)
+          case Failure(error) => Failure(error)
+        }
       }
     }
   }

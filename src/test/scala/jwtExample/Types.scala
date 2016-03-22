@@ -44,8 +44,27 @@ trait HeaderTypes extends AlgorithmTypes {
     type Typ = Newtype[String, TypOps]
     type Cty = Newtype[String, CtyOps]
 
-    def Typ(s: String): Typ = newtype(s)
-    def Cty(s: String): Cty = newtype(s)
+    object Typ {
+      def apply(s: String): Typ = newtype(s)
+      def unapply(h: Header): Option[Typ] = h match {
+        case Inl(x) => x.some
+        case _ => none
+      }
+    }
+    object Cty {
+      def apply(s: String): Cty = newtype(s)
+      def unapply(h: Header): Option[Cty] = h match {
+        case Inr(Inl(x)) => x.some
+        case _ => none
+      }
+    }
+
+    object Alg {
+      def unapply(h: Header): Option[Algorithm] = h match {
+        case Inr(Inr(Inl(x))) => x.some
+        case _ => none
+      }
+    }
 
   }
 

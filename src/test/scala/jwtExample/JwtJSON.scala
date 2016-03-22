@@ -47,4 +47,41 @@ object JwtJSON {
     JObject(xs map writeClaim)
   }
 
+  implicit lazy val algorithmRead: JSONR[Algorithm] = readL[String] emap {
+    case "HS256" => Algorithm.HS256.successNel
+    case "HS384" => Algorithm.HS384.successNel
+    case "HS512" => Algorithm.HS512.successNel
+    case "NONE" => Algorithm.NONE.successNel
+    case x => Fail.apply("", "one of: HS256, HS384, HS512, NONE", List(x))
+  }
+
+  implicit lazy val algorithmWrite: JSONW[Algorithm] = writeL[String].contramap[Algorithm] {
+    case Algorithm.HS256 => "HS256"
+    case Algorithm.HS384 => "HS384"
+    case Algorithm.HS512 => "HS512"
+    case Algorithm.NONE => "NONE"
+  }
+
+  val readHeader: (String, JValue) => Result[Header] = {
+    case ("typ", v) => v.validateC[Header.Typ, Header]
+    case ("cty", v) => v.validateC[Header.Cty, Header]
+    case ("alg", v) => v.validateC[Algorithm, Header]
+    case (key, value) => Fail(key, "expected one of: typ, cty, alg", List(value))
+  }
+
+  val writeHeader: Header => (String, JValue) = {
+    case Header.Typ(x) => ("typ", x.toJson)
+    case Header.Cty(x) => ("cty", x.toJson)
+    case Header.Alg(x) => ("alg", x.toJson)
+  }
+
+  implicit lazy val headersRead = read[List[Header]] {
+    case x: JObject => x.obj.map(x => readHeader.tupled(x)).sequence[Result, Header]
+    case json => Fail.unexpected(json, classOf[JObject])
+  }
+
+  implicit lazy val headersWrite = write[List[Header]] { xs =>
+    JObject(xs map writeHeader)
+  }
+
 }

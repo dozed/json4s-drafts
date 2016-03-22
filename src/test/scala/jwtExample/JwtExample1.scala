@@ -5,16 +5,16 @@ import shapeless.{:+:, Coproduct, _}
 
 import org.json4s._
 import org.json4s.ext.scalaz.JsonScalaz._
-import org.json4s.jackson.{compactJson, parseJson}
+import org.json4s.jackson.{compactJson, prettyJson, parseJson}
 
 import scalaz._, Scalaz._
 
-object Jwt extends App {
+object JwtExample1 extends App {
 
   import JwtTypes._
   import JwtJSON._
 
-  val header = parseJson(
+  val headerJson = parseJson(
     """
       |{
       |  "typ": "JWT",
@@ -23,14 +23,16 @@ object Jwt extends App {
     """.stripMargin)
 
 
-  val claimsJson = parseJson(
+  val claimJson = parseJson(
     """
       |{
       |  "iss": "joe",
       |  "exp": 1300819380,
       |  "http://example.com/is_root": true,
       |  "view": [100,200,300],
-      |  "admin": [100,200,300]
+      |  "admin": [100,200,300],
+      |  "aud": ["foo", "bar"],
+      |  "aud": "foo"
       |}
     """.stripMargin)
 
@@ -43,14 +45,19 @@ object Jwt extends App {
   println(iss)
 
 
-  val x = claimsJson.read[List[Claim]]
-
-  println(x)
+  val x1 = claimJson.read[List[Claim]]
+  println(x1)
 
   // TODO compiler hangs
   // x.toJson
 
-  println((x getOrElse ???).toJson)
+  println(prettyJson((x1 getOrElse ???).toJson))
+
+
+  val x2 = headerJson.read[List[Header]]
+
+  println(x2)
+  println(prettyJson((x2 getOrElse ???).toJson))
 
 }
 

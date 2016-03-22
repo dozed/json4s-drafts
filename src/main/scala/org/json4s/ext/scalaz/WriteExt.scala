@@ -18,6 +18,8 @@ trait WriteExt { self: Types =>
 
   case class JsonWriterContext[C, A](a: (C, A))
 
+  def writeL[A:JSONW] = implicitly[JSONW[A]]
+
   object write {
 
     def apply[A](f: A => JValue): JSONW[A] = new JSONW[A] {
