@@ -6,13 +6,9 @@ import shapeless.{:+:, Coproduct, _}
 
 import scalaz._, Scalaz._
 
-object JwtTypes extends HeaderTypes with ClaimsTypes {
+object JwtTypes {
 
   case class Jwt(headers: List[Header], claims: List[Claim])
-
-}
-
-trait AlgorithmTypes {
 
 
   implicit val algorithmShows = Show.show[Algorithm] {
@@ -33,9 +29,6 @@ trait AlgorithmTypes {
 
   }
 
-}
-
-trait HeaderTypes extends AlgorithmTypes {
 
   type Header = Header.Typ :+: Header.Cty :+: Algorithm :+: CNil
 
@@ -84,9 +77,6 @@ trait HeaderTypes extends AlgorithmTypes {
   implicit val mkCtyOps = CtyOps
   implicit val mkAlgOps = AlgOps
 
-}
-
-trait ClaimsTypes {
 
   import Claim._
 

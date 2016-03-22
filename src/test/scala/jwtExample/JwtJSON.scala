@@ -47,7 +47,7 @@ object JwtJSON {
     JObject(xs map writeClaim)
   }
 
-  implicit lazy val algorithmRead: JSONR[Algorithm] = readL[String] emap {
+  implicit lazy val algorithmRead: JSONR[Algorithm] = readL[String] map (_.toUpperCase) emap {
     case "HS256" => Algorithm.HS256.successNel
     case "HS384" => Algorithm.HS384.successNel
     case "HS512" => Algorithm.HS512.successNel
