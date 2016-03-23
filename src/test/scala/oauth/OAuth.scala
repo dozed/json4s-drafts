@@ -1,80 +1,65 @@
 package oauth
 
 import org.json4s._
-import org.json4s.jackson.{parseJsonOpt}
+import org.json4s.jackson.{parseJson, parseJsonOpt}
 import org.json4s.ext.scalaz.JsonScalaz._
 
+import scala.collection.immutable.BitSet
 import scala.concurrent.Future
+import scala.util.Try
+import scalaz.concurrent.Task
+import TaskC.toTask
 
-// import scala.collection.immutable.BitSet
-//import scala.util.Try
-//import dispatch._, Defaults._
-//import rl.UrlCodingUtils
+import dispatch._, Defaults._
+import rl.UrlCodingUtils
 
 import scalaz._, Scalaz._
 
-object OAuth {
+trait OAuthTypes {
 
-  trait ErrorCode
-
+  sealed trait ErrorCode
   object ErrorCode {
-    case class InvalidResponse(msg: String) extends ErrorCode
-    case class AuthorizationError(msg: String, description: String) extends ErrorCode
+    case class TokenResponseError(error: String, errorDescription: String) extends ErrorCode
+    case class InvalidResponse(message: String) extends ErrorCode
+    case class AuthorizationError(code: String, message: String) extends ErrorCode
+    case object ParseError extends ErrorCode
   }
+
 
   case class OAuthCredentials(
     clientId: String,
     clientSecret: String)
 
-  case class AccessToken(
-    accessToken: String,
-    expiresIn: Long,
-    tokenType: String)
-
-  sealed trait TokenResponse
-
-  case class TokenResponseSuccess(
-    idToken: String,
-    accessToken: AccessToken,
-    refreshToken: Option[String]) extends TokenResponse
-
-  case class TokenResponseError(msg: String, description: String) extends TokenResponse
-
-  type AuthorizationRequestUrl = String
-
-  case class AuthorizationRequest(
-    clientId: String,
-    responseType: String,
-    scopes: List[String],
-    redirectUri: String,
-    state: Map[String, String],
-    authorizationEndpointUri: String)
-
-  case class AuthorizationResponse(
-    code: String,
-    state: String)
-
   case class OAuthEndpoint(
     key: String,
     scopes: List[String],
-    uri: String
+    authorizationUri: String,
+    tokenUri: String
   )
 
-  // read a TokenResponse
-  //
-  // success case
-  //{
-  //  "access_token": "...",
-  //  "token_type": "Bearer",
-  //  "expires_in": 3600,
-  //  "id_token": "..."
-  //}
-  //
-  // error case
-  //{
-  //  "error": "invalid_grant",
-  //  "error_description": "Code was already redeemed."
-  //}
+  case class AccessToken(
+    value: String,
+    expiresIn: Long,
+    tokenType: String
+  )
+
+  case class TokenResponse(
+    idToken: String,
+    accessToken: AccessToken,
+    refreshToken: Option[String]
+  )
+
+  type AuthorizationRequestUrl = String
+
+  case class AuthorizationResponse(
+    code: String,
+    state: String
+  )
+
+}
+
+trait OAuthInstances extends OAuthTypes {
+
   implicit val tokenResponseRead = readE[TokenResponse] { jv =>
     if ((jv \ "error").isEmpty) {
 
@@ -85,70 +70,73 @@ object OAuth {
         tokenType <- (jv \ "token_type").read[String]
         refreshToken <- (jv \ "refresh_token").read[Option[String]]
       } yield {
-        TokenResponseSuccess(idToken, AccessToken(accessToken, expiresIn, tokenType), refreshToken)
+        TokenResponse(idToken, AccessToken(accessToken, expiresIn, tokenType), refreshToken)
       }
 
     } else {
 
-      val facebookParse = read[TokenResponse] { json =>
-        ((json \ "error" \ "code").validate[String] |@| (json \ "error" \ "message").validate[String])(TokenResponseError)
-      }
-
-      val googleParse = read[TokenResponse] { json =>
-        ((json \ "error").validate[String] |@| (json \ "error_description").validate[String])(TokenResponseError)
-      }
-
-      val errorParse = facebookParse | googleParse | (TokenResponseError("token response error", ""):TokenResponse).point[JSONR]
-
-      errorParse.readE1(jv)
+      UncategorizedError("token_response_read_error", "Token response has an error", Nil).left
 
     }
   }
 
+  implicit val tokenResponseErrorRead = read[ErrorCode.TokenResponseError] { json =>
 
-  // facebook api returns response as application/x-www-form-urlencoded
-  // access_token=...&expires=...
-  def parseTokenResponse(str: String): ErrorCode \/ TokenResponse = {
-    val params = readFormEncodedStringToMap(str)
+    val facebookError = read[ErrorCode.TokenResponseError] { json =>
+      ((json \ "error" \ "code").validate[String] |@| (json \ "error" \ "message").validate[String])(ErrorCode.TokenResponseError)
+    }
 
-    if (params.isDefinedAt("access_token")) {
+    val googleError = read[ErrorCode.TokenResponseError] { json =>
+      ((json \ "error").validate[String] |@| (json \ "error_description").validate[String])(ErrorCode.TokenResponseError)
+    }
 
-      val token = params("access_token")
-      TokenResponseSuccess("", AccessToken(token, 0, ""), None).right
+    (facebookError | googleError).read(json)
 
-    } else {
+  }
 
-      for {
-        json <- parseJsonOpt(str) \/> ErrorCode.InvalidResponse("malformed_message")
-        tokenResponse <- json.read[TokenResponse] leftAs ErrorCode.InvalidResponse("malformed_message")
-      } yield tokenResponse
+}
 
+object Encoding {
+
+  def formEncodedStringToMap(s: String): Map[String, String] = Try {
+    s.split("&").toList flatMap { s =>
+      s.split("=").toList match {
+        case key :: value :: Nil => Some(UrlCodingUtils.urlDecode(key) -> UrlCodingUtils.urlDecode(value))
+        case _ => None
+      }
+    } toMap
+  } getOrElse Map[String, String]()
+
+  val toSkip = BitSet((('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9') ++ "!$'()*+,;:/?@-._~".toSet).map(_.toInt): _*)
+  def encode(s: String) = UrlCodingUtils.urlEncode(s, toSkip = toSkip)
+  def encodeMap(s: Map[String, String]) = s map { case (key, value) => f"${encode(key)}=${encode(value)}" } mkString "&"
+
+}
+
+object TaskC {
+
+  import scala.concurrent.{Future => SFuture}
+  import scalaz.concurrent.{Task => ZTask}
+
+  def toTask[T](ft: => SFuture[T]): ZTask[T] = {
+    import scalaz._
+    ZTask.async { register =>
+      ft.onComplete({
+        case scala.util.Success(v) => register(\/-(v))
+        case scala.util.Failure(ex) => register(-\/(ex))
+      })
     }
   }
 
-  def encodeQueryParams(s: Map[String, String]): String = ???
-  def readFormEncodedStringToMap(s: String): Map[String, String] = ???
+}
 
-  def authorizationRequest(credentials: OAuthCredentials, endpoint: OAuthEndpoint, redirectUri: String, state: Map[String, String] = Map.empty): AuthorizationRequest = {
-    AuthorizationRequest(
-      credentials.clientId, "code", endpoint.scopes, redirectUri,
-      Map("action" -> "login", "provider" -> endpoint.key) ++ state,
-      endpoint.uri
-    )
-  }
 
-  def authorizationRequestUrl(authorizationRequest: AuthorizationRequest): AuthorizationRequestUrl = {
-    val queryParams = Map(
-      "client_id" -> authorizationRequest.clientId,
-      "response_type" -> authorizationRequest.responseType,
-      "scope" -> authorizationRequest.scopes.mkString(" "),
-      "redirect_uri" -> authorizationRequest.redirectUri,
-      "state" -> encodeQueryParams(authorizationRequest.state))
 
-    s"${authorizationRequest.authorizationEndpointUri}?${encodeQueryParams(queryParams)}"
-  }
+object OAuth extends OAuthTypes with OAuthInstances {
 
-  def exchangeCodeForAccessToken(credentials: OAuthCredentials, code: String, redirectUri: String): Future[ErrorCode \/ TokenResponseSuccess] = {
+  import Encoding._
+
+  def exchangeCodeForAccessToken(endpoint: OAuthEndpoint, credentials: OAuthCredentials, code: String, redirectUri: String): Future[ErrorCode \/ TokenResponse] = {
     val bodyParams = Map(
       "code" -> code,
       "client_id" -> credentials.clientId,
@@ -156,9 +144,33 @@ object OAuth {
       "redirect_uri" -> redirectUri,
       "grant_type" -> "authorization_code")
 
-    // Http(tokenEndpoint << bodyParams > asTokenResponse)
-    ???
+    Http(url(endpoint.tokenUri) << bodyParams > (r => parseTokenResponse(r.getResponseBody)))
+
   }
+
+  def parseTokenResponse(str: String): ErrorCode \/ TokenResponse =
+    parseJsonOpt(str).fold(parseFormEncodedToken(str))(parseJsonToken)
+
+  // parse either a TokenResponse or an ErrorCode.TokenResponseError
+  def parseJsonToken(json: JValue): ErrorCode \/ TokenResponse = {
+    json.read[TokenResponse] leftAs {
+      (json.read[ErrorCode.TokenResponseError] leftAs ErrorCode.ParseError).merge
+    }
+  }
+
+  // facebook api returns response as application/x-www-form-urlencoded
+  // access_token=...&expires=...
+  def parseFormEncodedToken(str: String): ErrorCode \/ TokenResponse = {
+    val params = formEncodedStringToMap(str)
+
+    if (params.isDefinedAt("access_token")) {
+      val token = params("access_token")
+      TokenResponse("", AccessToken(token, 0, ""), None).right
+    } else {
+      ErrorCode.InvalidResponse("malformed_message").left
+    }
+  }
+
 
   // success case
   // https://www.example.org/oauth2callback?
@@ -186,7 +198,47 @@ object OAuth {
     }
   }
 
+  def authorizationRequestUrl(endpoint: OAuthEndpoint, credentials: OAuthCredentials, redirectUri: String, state: Map[String, String]): AuthorizationRequestUrl = {
+    val queryParams = Map(
+      "client_id" -> credentials.clientId,
+      "response_type" -> "code",
+      "scope" -> endpoint.scopes.mkString(" "),
+      "redirect_uri" -> redirectUri,
+      "state" -> encodeMap(state))
 
+    s"${endpoint.authorizationUri}?${encodeMap(queryParams)}"
+  }
+
+
+}
+
+object OAuthClient2 extends App  {
+
+  import OAuth._
+
+  val redirectUri = "http://localhost/oauth/callback"
+
+  val fb = OAuthEndpoint("facebook", List("email"), "https://www.facebook.com/dialog/oauth", "https://graph.facebook.com/oauth/access_token")
+  val fbCreds = OAuthCredentials(???, ???)
+
+  val req1Url = authorizationRequestUrl(fb, fbCreds, redirectUri, Map("action" -> "login", "provider" -> fb.key))
+
+  println(req1Url)
+  println("Enter code:")
+  val code = readLine
+
+
+  val authUser: Task[ErrorCode \/ JValue] = toTask {
+    (for {
+      tokenResponse <- EitherT(exchangeCodeForAccessToken(fb, fbCreds, code, redirectUri))
+      user <- EitherT {
+        val h = Map("Authorization" -> f"Bearer ${tokenResponse.accessToken.value}")
+        Http(url("https://graph.facebook.com/me") <:< h > (r => parseJson(r.getResponseBody))).map(_.right[ErrorCode])
+      }
+    } yield user).run
+  }
+
+  println(authUser.run)
 
 
 }
