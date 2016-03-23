@@ -13,9 +13,9 @@ resolvers ++= Seq(
 
 libraryDependencies ++= Seq(
   "org.json4s" %% "json4s-jackson" % "3.3.0",
-  "joda-time" % "joda-time" % "2.9.2",
   "com.chuusai" %% "shapeless" % "2.2.5",
   "org.scalaz" %% "scalaz-core" % "7.1.7",
+  "joda-time" % "joda-time" % "2.9.2" % "test",
   "org.scalaz" %% "scalaz-concurrent" % "7.1.7" % "test",
   "org.scalatra.rl" %% "rl" % "0.4.10" % "test",
   "net.databinder.dispatch" %% "dispatch-core" % "0.11.2" % "test",
