@@ -4,16 +4,50 @@ import org.json4s._
 import org.json4s.jackson.{parseJson, parseJsonOpt}
 import org.json4s.ext.scalaz.JsonScalaz._
 
-import scala.collection.immutable.BitSet
 import scala.concurrent.Future
-import scala.util.Try
 import scalaz.concurrent.Task
-import TaskC.toTask
 
 import dispatch._, Defaults._
-import rl.UrlCodingUtils
 
 import scalaz._, Scalaz._
+
+object OAuth extends OAuthTypes with OAuthJSONR with OAuthRequestParser {
+
+  def exchangeCodeForAccessToken(endpoint: OAuthEndpoint, credentials: OAuthCredentials, code: String, redirectUri: String): Future[ErrorCode \/ TokenResponse] = {
+    val bodyParams = Map(
+      "code" -> code,
+      "client_id" -> credentials.clientId,
+      "client_secret" -> credentials.clientSecret,
+      "redirect_uri" -> redirectUri,
+      "grant_type" -> "authorization_code")
+
+    Http(url(endpoint.tokenUri) << bodyParams > (r => parseTokenResponse(r.getResponseBody)))
+
+  }
+
+  def authorizationRequestUrl(endpoint: OAuthEndpoint, credentials: OAuthCredentials, redirectUri: String, state: Map[String, String]): AuthorizationRequestUrl = {
+    val queryParams = Map(
+      "client_id" -> credentials.clientId,
+      "response_type" -> "code",
+      "scope" -> endpoint.scopes.mkString(" "),
+      "redirect_uri" -> redirectUri,
+      "state" -> Encoding.encodeMap(state))
+
+    s"${endpoint.authorizationUri}?${Encoding.encodeMap(queryParams)}"
+  }
+
+  def authenticateUser(endpoint: OAuthEndpoint, credentials: OAuthCredentials, redirectUri: String): Task[ErrorCode \/ TokenResponse] = {
+    val req1Url = authorizationRequestUrl(endpoint, credentials, redirectUri, Map("action" -> "login", "provider" -> endpoint.key))
+
+    println(req1Url)
+    println("Enter code:")
+    val code = readLine
+
+    TaskC.toTask(exchangeCodeForAccessToken(endpoint, credentials, code, redirectUri))
+  }
+
+
+}
 
 trait OAuthTypes {
 
@@ -58,7 +92,7 @@ trait OAuthTypes {
 
 }
 
-trait OAuthInstances extends OAuthTypes {
+trait OAuthJSONR extends OAuthTypes {
 
   implicit val tokenResponseRead = readE[TokenResponse] { jv =>
     if ((jv \ "error").isEmpty) {
@@ -83,11 +117,11 @@ trait OAuthInstances extends OAuthTypes {
   implicit val tokenResponseErrorRead = read[ErrorCode.TokenResponseError] { json =>
 
     val facebookError = read[ErrorCode.TokenResponseError] { json =>
-      ((json \ "error" \ "code").validate[String] |@| (json \ "error" \ "message").validate[String])(ErrorCode.TokenResponseError)
+      ((json \ "error" \ "code").validate[String] |@| (json \ "error" \ "message").validate[String]) (ErrorCode.TokenResponseError)
     }
 
     val googleError = read[ErrorCode.TokenResponseError] { json =>
-      ((json \ "error").validate[String] |@| (json \ "error_description").validate[String])(ErrorCode.TokenResponseError)
+      ((json \ "error").validate[String] |@| (json \ "error_description").validate[String]) (ErrorCode.TokenResponseError)
     }
 
     (facebookError | googleError).read(json)
@@ -96,57 +130,7 @@ trait OAuthInstances extends OAuthTypes {
 
 }
 
-object Encoding {
-
-  def formEncodedStringToMap(s: String): Map[String, String] = Try {
-    s.split("&").toList flatMap { s =>
-      s.split("=").toList match {
-        case key :: value :: Nil => Some(UrlCodingUtils.urlDecode(key) -> UrlCodingUtils.urlDecode(value))
-        case _ => None
-      }
-    } toMap
-  } getOrElse Map[String, String]()
-
-  val toSkip = BitSet((('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9') ++ "!$'()*+,;:/?@-._~".toSet).map(_.toInt): _*)
-  def encode(s: String) = UrlCodingUtils.urlEncode(s, toSkip = toSkip)
-  def encodeMap(s: Map[String, String]) = s map { case (key, value) => f"${encode(key)}=${encode(value)}" } mkString "&"
-
-}
-
-object TaskC {
-
-  import scala.concurrent.{Future => SFuture}
-  import scalaz.concurrent.{Task => ZTask}
-
-  def toTask[T](ft: => SFuture[T]): ZTask[T] = {
-    import scalaz._
-    ZTask.async { register =>
-      ft.onComplete({
-        case scala.util.Success(v) => register(\/-(v))
-        case scala.util.Failure(ex) => register(-\/(ex))
-      })
-    }
-  }
-
-}
-
-
-
-object OAuth extends OAuthTypes with OAuthInstances {
-
-  import Encoding._
-
-  def exchangeCodeForAccessToken(endpoint: OAuthEndpoint, credentials: OAuthCredentials, code: String, redirectUri: String): Future[ErrorCode \/ TokenResponse] = {
-    val bodyParams = Map(
-      "code" -> code,
-      "client_id" -> credentials.clientId,
-      "client_secret" -> credentials.clientSecret,
-      "redirect_uri" -> redirectUri,
-      "grant_type" -> "authorization_code")
-
-    Http(url(endpoint.tokenUri) << bodyParams > (r => parseTokenResponse(r.getResponseBody)))
-
-  }
+trait OAuthRequestParser extends OAuthTypes with OAuthJSONR {
 
   def parseTokenResponse(str: String): ErrorCode \/ TokenResponse =
     parseJsonOpt(str).fold(parseFormEncodedToken(str))(parseJsonToken)
@@ -161,7 +145,7 @@ object OAuth extends OAuthTypes with OAuthInstances {
   // facebook api returns response as application/x-www-form-urlencoded
   // access_token=...&expires=...
   def parseFormEncodedToken(str: String): ErrorCode \/ TokenResponse = {
-    val params = formEncodedStringToMap(str)
+    val params = Encoding.formEncodedStringToMap(str)
 
     if (params.isDefinedAt("access_token")) {
       val token = params("access_token")
@@ -198,26 +182,5 @@ object OAuth extends OAuthTypes with OAuthInstances {
     }
   }
 
-  def authorizationRequestUrl(endpoint: OAuthEndpoint, credentials: OAuthCredentials, redirectUri: String, state: Map[String, String]): AuthorizationRequestUrl = {
-    val queryParams = Map(
-      "client_id" -> credentials.clientId,
-      "response_type" -> "code",
-      "scope" -> endpoint.scopes.mkString(" "),
-      "redirect_uri" -> redirectUri,
-      "state" -> encodeMap(state))
-
-    s"${endpoint.authorizationUri}?${encodeMap(queryParams)}"
-  }
-
-  def authenticateUser(endpoint: OAuthEndpoint, credentials: OAuthCredentials, redirectUri: String): Task[ErrorCode \/ TokenResponse] = {
-    val req1Url = authorizationRequestUrl(endpoint, credentials, redirectUri, Map("action" -> "login", "provider" -> endpoint.key))
-
-    println(req1Url)
-    println("Enter code:")
-    val code = readLine
-
-    TaskC.toTask(exchangeCodeForAccessToken(endpoint, credentials, code, redirectUri))
-  }
-
-
 }
+
