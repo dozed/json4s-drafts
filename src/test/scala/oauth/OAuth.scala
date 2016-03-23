@@ -209,36 +209,15 @@ object OAuth extends OAuthTypes with OAuthInstances {
     s"${endpoint.authorizationUri}?${encodeMap(queryParams)}"
   }
 
+  def authenticateUser(endpoint: OAuthEndpoint, credentials: OAuthCredentials, redirectUri: String): Task[ErrorCode \/ TokenResponse] = {
+    val req1Url = authorizationRequestUrl(endpoint, credentials, redirectUri, Map("action" -> "login", "provider" -> endpoint.key))
 
-}
+    println(req1Url)
+    println("Enter code:")
+    val code = readLine
 
-object OAuthClient2 extends App  {
-
-  import OAuth._
-
-  val redirectUri = "http://localhost/oauth/callback"
-
-  val fb = OAuthEndpoint("facebook", List("email"), "https://www.facebook.com/dialog/oauth", "https://graph.facebook.com/oauth/access_token")
-  val fbCreds = OAuthCredentials(???, ???)
-
-  val req1Url = authorizationRequestUrl(fb, fbCreds, redirectUri, Map("action" -> "login", "provider" -> fb.key))
-
-  println(req1Url)
-  println("Enter code:")
-  val code = readLine
-
-
-  val authUser: Task[ErrorCode \/ JValue] = toTask {
-    (for {
-      tokenResponse <- EitherT(exchangeCodeForAccessToken(fb, fbCreds, code, redirectUri))
-      user <- EitherT {
-        val h = Map("Authorization" -> f"Bearer ${tokenResponse.accessToken.value}")
-        Http(url("https://graph.facebook.com/me") <:< h > (r => parseJson(r.getResponseBody))).map(_.right[ErrorCode])
-      }
-    } yield user).run
+    TaskC.toTask(exchangeCodeForAccessToken(endpoint, credentials, code, redirectUri))
   }
-
-  println(authUser.run)
 
 
 }
