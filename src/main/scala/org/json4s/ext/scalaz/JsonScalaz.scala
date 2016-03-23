@@ -38,15 +38,6 @@ trait Types extends Base {
 
   trait JSONR[A] { self =>
     def read(json: JValue): Result[A]
-
-    def emap[B](f: A => Result[B]): JSONR[B] = new JSONR[B] {
-      override def read(json: JValue): Result[B] = {
-        self.read(json) match {
-          case Success(a) => f(a)
-          case f@Failure(error) => f
-        }
-      }
-    }
   }
 
   trait JSONW[A] {

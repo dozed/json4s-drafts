@@ -18,7 +18,7 @@ trait WriteExt { self: Types =>
 
   case class JsonWriterContext[C, A](a: (C, A))
 
-  def writeL[A:JSONW] = implicitly[JSONW[A]]
+  def writeL[A:JSONW]: JSONW[A] = implicitly[JSONW[A]]
 
   object write {
 
@@ -26,7 +26,7 @@ trait WriteExt { self: Types =>
       override def write(a: A): JValue = f(a)
     }
 
-    def nil[A] = write[A](_ => JNothing)
+    def nil[A]: JSONW[A] = write[A](_ => JNothing)
 
     def context[C, A](f: (C, A) => JValue): JSONW[JsonWriterContext[C, A]] = write[JsonWriterContext[C, A]](ca => f.tupled(ca.a))
 

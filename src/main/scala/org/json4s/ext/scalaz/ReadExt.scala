@@ -7,17 +7,17 @@ trait ReadExt { self: Types =>
   import scalaz._, Scalaz._
 
   // validation
-  def read[A](f: JValue => Result[A]) = new JSONR[A] {
+  def read[A](f: JValue => Result[A]): JSONR[A] = new JSONR[A] {
     def read(json: JValue) = f(json)
   }
 
   // either
-  def readE[A](f: JValue => Error \/ A) = new JSONR[A] {
+  def readE[A](f: JValue => Error \/ A): JSONR[A] = new JSONR[A] {
     def read(json: JValue) = f(json).validationNel
   }
 
   // lookup
-  def readL[A:JSONR] = implicitly[JSONR[A]]
+  def readL[A:JSONR]: JSONR[A] = implicitly[JSONR[A]]
 
 
   def fieldT[A:JSONR](f: JValue => JValue): JValue => Result[A] = { json =>
@@ -26,9 +26,19 @@ trait ReadExt { self: Types =>
 
   def validate2[A:JSONR](json: JValue): Result[A] = implicitly[JSONR[A]].read(json)
 
-  implicit class JArrayOps(j: JArray) {
-    def head: JValue = j.children.head
-    def tail: JValue = JArray(j.children.tail)
+  implicit class JArrayExt(v: JArray) {
+    def head: JValue = v.children.head
+    def tail: JValue = JArray(v.children.tail)
+  }
+
+  implicit class JValueExt(v: JValue) {
+    def isDefined: Boolean = !isEmpty
+
+    def isEmpty = v match {
+      case JNothing => true
+      case JNull => true
+      case _ => false
+    }
   }
 
   implicit class StringExt(s: String) {
@@ -38,12 +48,26 @@ trait ReadExt { self: Types =>
   }
 
   implicit class JSONRExt[A](fa: JSONR[A]) {
+
+    def emap[B](f: A => Result[B]): JSONR[B] = new JSONR[B] {
+      override def read(json: JValue): Result[B] = {
+        fa.read(json) match {
+          case Success(a) => f(a)
+          case f@Failure(error) => f
+        }
+      }
+    }
+
     def orElse[B >: A](fa2: JSONR[B]): JSONR[B] = new JSONR[B] {
       override def read(json: JValue): Result[B] = {
         fa.read(json) orElse fa2.read(json)
       }
     }
+
     def |[B >: A](fa2: JSONR[B]): JSONR[B] = orElse(fa2)
+
+    def readE1(json: JValue): Error \/ A = fa.read(json).disjunction.leftMap(_.head)
+
   }
 
 }
