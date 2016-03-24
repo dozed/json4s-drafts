@@ -87,7 +87,8 @@ object JwtSimple extends App {
     case Claim.Nbf(x) => ("nbf", x.toJson)
     case Claim.Iat(x) => ("iat", x.toJson)
     case Claim.Jti(x) => ("jti", x.toJson)
-    case Claim.Custom(key, value) => (key, parseJson(value))  // TODO might fail
+    case Claim.Custom(key, value) =>
+      parseJsonOpt(value).fold((key, value.toJson))(json => (key, json))
   }
 
   implicit lazy val claimsRead = read[List[Claim]] {
