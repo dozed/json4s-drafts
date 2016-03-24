@@ -21,7 +21,7 @@ object JwtSimple extends App {
 
   def stringOrList = Coproduct[StringOrList]
 
-  sealed trait Algorithm extends Header
+  sealed trait Algorithm
 
   object Algorithm {
 
@@ -71,7 +71,7 @@ object JwtSimple extends App {
   val readClaim: (String, JValue) => Result[Claim] = {
     case ("iss", v) => v.validate[String].map(Claim.Iss)
     case ("sub", v) => v.validate[String].map(Claim.Sub)
-    // case ("aud", v) => v.validate[StringOrList].map(Claim.Aud)
+    case ("aud", v) => v.validate[StringOrList].map(Claim.Aud)
     case ("exp", v) => v.validate[Long].map(Claim.Exp)
     case ("nbf", v) => v.validate[Long].map(Claim.Nbf)
     case ("iat", v) => v.validate[Long].map(Claim.Iat)
@@ -126,7 +126,7 @@ object JwtSimple extends App {
   val readHeader: (String, JValue) => Result[Header] = {
     case ("typ", v) => v.validate[String].map(Header.Typ)
     case ("cty", v) => v.validate[String].map(Header.Cty)
-    case ("alg", v) => v.validate[Algorithm]
+    case ("alg", v) => v.validate[Algorithm].map(Header.Alg)
     case (key, value) => Fail(key, "expected one of: typ, cty, alg", List(value))
   }
 
@@ -171,7 +171,17 @@ object JwtSimple extends App {
 
 
 
-  println(prettyJson(token.toJson))
+  val json = token.toJson
+  val token2 = json.read[Jwt] getOrElse ???
+
+  println(prettyJson(json))
+  // TODO order of headers/claims
+  println(token === token2)
+  println(token)
+  println(token2)
+
+
+
 
 
 
