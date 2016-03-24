@@ -32,4 +32,17 @@ trait JsonShapeless { self: Types =>
     }
   }
 
+  implicit lazy val readCNil: JSONR[CNil] = new JSONR[CNil] {
+    override def read(json: JValue): Result[CNil] = ???
+  }
+
+  implicit def readCCons[L, R <: Coproduct](implicit cl: Lazy[JSONR[L]], cr: Lazy[JSONR[R]]): JSONR[L :+: R] = {
+    new JSONR[L :+: R] {
+      override def read(json: JValue): Result[L :+: R] = {
+        cl.value.read(json).map(x => Inl(x)) |||
+          cr.value.read(json).map(x => Inr(x))
+      }
+    }
+  }
+
 }
