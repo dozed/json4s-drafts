@@ -176,7 +176,7 @@ object JwtSimple extends App {
 
   println(prettyJson(json))
   // TODO order of headers/claims
-  println(token === token2)
+  println(token == token2)
   println(token)
   println(token2)
 
