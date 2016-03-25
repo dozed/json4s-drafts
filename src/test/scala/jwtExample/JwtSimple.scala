@@ -106,8 +106,8 @@ object JwtSimple extends App {
   // instances
 
   implicit lazy val readAud =
-    readL[List[String]].map(x => Claim.Aud(stringOrList(x))) orElse
-      readL[String].map(x => Claim.Aud(stringOrList(x)))
+    JSON.readL[List[String]].map(x => Claim.Aud(stringOrList(x))) orElse
+      JSON.readL[String].map(x => Claim.Aud(stringOrList(x)))
 
   val readClaim: (String, JValue) => Result[Claim] = {
     case ("iss", v) => v.validate[String].map(Claim.Iss)
@@ -132,16 +132,16 @@ object JwtSimple extends App {
       parseJsonOpt(value).fold((key, value.toJson))(json => (key, json))
   }
 
-  implicit lazy val claimsRead = read[List[Claim]] {
+  implicit lazy val claimsRead = JSON.read[List[Claim]] {
     case x: JObject => x.obj.map(x => readClaim.tupled(x)).sequence[Result, Claim]
     case json => Fail.unexpected(json, classOf[JObject])
   }
 
-  implicit lazy val claimsWrite = write[List[Claim]] { xs =>
+  implicit lazy val claimsWrite = JSON.write[List[Claim]] { xs =>
     JObject(xs map writeClaim)
   }
 
-  implicit lazy val algorithmRead: JSONR[Algorithm] = readL[String] map (_.toUpperCase) emap {
+  implicit lazy val algorithmRead: JSONR[Algorithm] = JSON.readL[String].map(_.toUpperCase).emap {
     case "HS256" => Algorithm.HS256.successNel
     case "HS384" => Algorithm.HS384.successNel
     case "HS512" => Algorithm.HS512.successNel
@@ -149,7 +149,7 @@ object JwtSimple extends App {
     case x => Fail.apply("", "one of: HS256, HS384, HS512, NONE", List(x))
   }
 
-  implicit lazy val algorithmWrite: JSONW[Algorithm] = writeL[String].contramap[Algorithm] {
+  implicit lazy val algorithmWrite: JSONW[Algorithm] = JSON.writeL[String].contramap[Algorithm] {
     case Algorithm.HS256 => "HS256"
     case Algorithm.HS384 => "HS384"
     case Algorithm.HS512 => "HS512"
@@ -169,12 +169,12 @@ object JwtSimple extends App {
     case Header.Alg(x) => ("alg", x.toJson)
   }
 
-  implicit lazy val headersRead = read[List[Header]] {
+  implicit lazy val headersRead = JSON.read[List[Header]] {
     case x: JObject => x.obj.map(x => readHeader.tupled(x)).sequence[Result, Header]
     case json => Fail.unexpected(json, classOf[JObject])
   }
 
-  implicit lazy val headersWrite = write[List[Header]] { xs =>
+  implicit lazy val headersWrite = JSON.write[List[Header]] { xs =>
     JObject(xs map writeHeader)
   }
 

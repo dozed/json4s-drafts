@@ -25,7 +25,7 @@ object HlistExample extends App {
         }
       }
 
-      override def emptyProduct: JSONR[HNil] = read[HNil](_ => HNil.successNel)
+      override def emptyProduct: JSONR[HNil] = JSON.read[HNil](_ => HNil.successNel)
 
       override def project[F, G](instance: => JSONR[G], to: (F) => G, from: (G) => F): JSONR[F] = new JSONR[F] {
         override def read(value: JValue): Result[F] = {

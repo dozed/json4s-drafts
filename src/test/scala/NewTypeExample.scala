@@ -34,7 +34,7 @@ object NewTypeExample extends App {
   val orderJson = parseJson(orderDoc)
 
 
-  implicit val readEmail: JSONR[Email] = readE[Email] { json =>
+  implicit val readEmail = JSON.readE[Email] { json =>
     for {
       str <- json.read[String]
       _ <- if (!str.contains("@")) UncategorizedError("email", "invalid email format", Nil).left else str.right

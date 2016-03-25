@@ -37,7 +37,7 @@ object OAuthApis {
     case "google" =>  "https://www.googleapis.com/oauth2/v2/userinfo"
   }
 
-  val readGoogleUser = readE[UserProfile] { jv =>
+  val readGoogleUser = JSON.readE[UserProfile] { jv =>
     for {
       id <- (jv \ "id").read[String]
       email <- (jv \ "email").read[String]
@@ -53,7 +53,7 @@ object OAuthApis {
     }
   }
 
-  val readFacebookUser = readE[UserProfile] { jv =>
+  val readFacebookUser = JSON.readE[UserProfile] { jv =>
     for {
       id <- (jv \ "id").read[String]
       email <- (jv \ "email").read[String]

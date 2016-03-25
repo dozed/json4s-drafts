@@ -75,6 +75,7 @@ trait Types extends Base {
     }
   }
 
+  // TODO make optional
   object JSONR extends LabelledTypeClassCompanion[JSONR] {
 
     object typeClass extends LabelledTypeClass[JSONR] {
@@ -172,6 +173,41 @@ trait Types extends Base {
         }
       }
     }
+
+  }
+
+  case class JSONWContext[C, A](a: (C, A))
+
+  // TODO split up in JSONW and JSONR companion objects
+  object JSON {
+
+    // validation
+    def read[A](f: JValue => Result[A]): JSONR[A] = new JSONR[A] {
+      def read(json: JValue) = f(json)
+    }
+
+    // either
+    def readE[A](f: JValue => Error \/ A): JSONR[A] = new JSONR[A] {
+      def read(json: JValue) = f(json).validationNel
+    }
+
+    // lookup
+    def readL[A:JSONR]: JSONR[A] = implicitly[JSONR[A]]
+
+    def writeL[A:JSONW]: JSONW[A] = implicitly[JSONW[A]]
+
+    object write {
+
+      def apply[A](f: A => JValue): JSONW[A] = new JSONW[A] {
+        override def write(a: A): JValue = f(a)
+      }
+
+      def nil[A]: JSONW[A] = write[A](_ => JNothing)
+
+      def context[C, A](f: (C, A) => JValue): JSONW[JSONWContext[C, A]] = write[JSONWContext[C, A]](ca => f.tupled(ca.a))
+
+    }
+
 
   }
 

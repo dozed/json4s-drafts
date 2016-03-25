@@ -6,20 +6,6 @@ trait ReadExt { self: Types =>
 
   import scalaz._, Scalaz._
 
-  // validation
-  def read[A](f: JValue => Result[A]): JSONR[A] = new JSONR[A] {
-    def read(json: JValue) = f(json)
-  }
-
-  // either
-  def readE[A](f: JValue => Error \/ A): JSONR[A] = new JSONR[A] {
-    def read(json: JValue) = f(json).validationNel
-  }
-
-  // lookup
-  def readL[A:JSONR]: JSONR[A] = implicitly[JSONR[A]]
-
-
   def fieldT[A:JSONR](f: JValue => JValue): JValue => Result[A] = { json =>
     implicitly[JSONR[A]].read(f(json))
   }

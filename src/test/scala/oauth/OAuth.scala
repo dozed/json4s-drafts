@@ -94,7 +94,7 @@ trait OAuthTypes {
 
 trait OAuthJSONR extends OAuthTypes {
 
-  implicit val tokenResponseRead = readE[TokenResponse] { jv =>
+  implicit val tokenResponseRead = JSON.readE[TokenResponse] { jv =>
     if ((jv \ "error").isEmpty) {
 
       for {
@@ -114,13 +114,13 @@ trait OAuthJSONR extends OAuthTypes {
     }
   }
 
-  implicit val tokenResponseErrorRead = read[ErrorCode.TokenResponseError] { json =>
+  implicit val tokenResponseErrorRead = JSON.read[ErrorCode.TokenResponseError] { json =>
 
-    val facebookError = read[ErrorCode.TokenResponseError] { json =>
+    val facebookError = JSON.read[ErrorCode.TokenResponseError] { json =>
       ((json \ "error" \ "code").validate[String] |@| (json \ "error" \ "message").validate[String]) (ErrorCode.TokenResponseError)
     }
 
-    val googleError = read[ErrorCode.TokenResponseError] { json =>
+    val googleError = JSON.read[ErrorCode.TokenResponseError] { json =>
       ((json \ "error").validate[String] |@| (json \ "error_description").validate[String]) (ErrorCode.TokenResponseError)
     }
 

@@ -46,14 +46,14 @@ object ReadExample extends App {
 
 
 
-  implicit val contactRead2: JSONR[Contact] = readE[Contact] { json =>
+  implicit val contactRead2 = JSON.readE[Contact] { json =>
     for {
       email <- (json \ "email").read[String]
       phone <- (json \ "phone").read[List[String]]
     } yield Contact(email, phone)
   }
 
-  implicit val itemReadM: JSONR[Item] = readE[Item]({ json =>
+  implicit val itemReadM = JSON.readE[Item]({ json =>
     for {
       label <- (json \ "label").read[String]
       amount <- (json \ "amount" \ "value").read[Int]
@@ -61,7 +61,7 @@ object ReadExample extends App {
     } yield Item(label, amount, price)
   })
 
-  implicit val orderRead = readE[Order] { json =>
+  implicit val orderRead = JSON.readE[Order] { json =>
     for {
       id <- (json \ "orderId").read[String]
       contact <- (json \ "contact").read[Contact]
