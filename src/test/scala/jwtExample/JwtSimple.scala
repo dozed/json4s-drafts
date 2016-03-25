@@ -21,20 +21,23 @@ object JwtSimple extends App {
 
   // types
 
+  // TODO the payload can contain an arbitrary sequence of octets
   case class Jws[A:JSONW](
     header: List[Header],
     payload: A,
     signature: JwsSignature
   ) {
 
-    lazy val alg: Algorithm = header.collectFirst { case Header.Alg(x) => x}.get
+    lazy val alg: Algorithm = header.collectFirst { case Header.Alg(x) => x }.get
 
   }
 
   type JwsCompact = String
   type JwsSignature = String
   type Jwt = List[Claim]
+
   type JoseHeader = List[Header]
+  // TODO only valid with an alg header
 
   sealed trait Header
 
@@ -153,13 +156,6 @@ object JwtSimple extends App {
     case Algorithm.NONE => "NONE"
   }
 
-  implicit val algorithmShow = Show.show[Algorithm] {
-    case Algorithm.HS256 => "HmacSHA256"
-    case Algorithm.HS384 => "HmacSHA384"
-    case Algorithm.HS512 => "HmacSHA512"
-    case Algorithm.NONE => "none"
-  }
-
   val readHeader: (String, JValue) => Result[Header] = {
     case ("typ", v) => v.validate[String].map(Header.Typ)
     case ("cty", v) => v.validate[String].map(Header.Cty)
@@ -202,7 +198,7 @@ object JwtSimple extends App {
         (headerText, payloadText, signature) <- xs.toHList[String :: String :: String :: HNil].map(_.tupled)
         header <- decodeFromBase64[List[Header]](headerText)
         claim <- decodeFromBase64[A](payloadText)
-        // alg <- headers.collectFirst { case Header.Alg(x) => x }  // JWS only valid with an alg header ?
+        // alg <- headers.collectFirst { case Header.Alg(x) => x }
       } yield {
         Jws(header, claim, signature)
       }
@@ -217,16 +213,16 @@ object JwtSimple extends App {
     }
 
     def computeMac(encodedHeaderAndPayload: String, algorithm: Algorithm, secret: String): JwsSignature = {
-      def hmac(alg: Algorithm) = {
-        val mac: Mac = Mac.getInstance(alg.shows)
-        mac.init(new SecretKeySpec(secret.getBytes("utf-8"), alg.shows))
+      def hmac(alg: String) = {
+        val mac: Mac = Mac.getInstance(alg)
+        mac.init(new SecretKeySpec(secret.getBytes("utf-8"), alg))
         encodeBase64Url(mac.doFinal(encodedHeaderAndPayload.getBytes("utf-8")))
       }
 
       algorithm match {
-        case Algorithm.HS256 => hmac(Algorithm.HS256)
-        case Algorithm.HS384 => hmac(Algorithm.HS384)
-        case Algorithm.HS512 => hmac(Algorithm.HS512)
+        case Algorithm.HS256 => hmac("HmacSHA256")
+        case Algorithm.HS384 => hmac("HmacSHA384")
+        case Algorithm.HS512 => hmac("HmacSHA512")
         case Algorithm.NONE => ""
       }
     }
@@ -305,15 +301,12 @@ object JwtSimple extends App {
 
   println(Jwt.sign(jws1.payload, secret, Algorithm.HS512))
 
-  val s = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJpc3MiLCJzdWIiOiJzdWIiLCJhdWQiOiJhdWQiLCJhdWQiOlsiYXVkIiwiYXVkMiJdLCJleHAiOjQyLCJuYmYiOjQyLCJpYXQiOjQyLCJqdGkiOiJqdGkiLCJmb28iOiJiYXIifQ==.9SCDyruJ9p0SGkzGdMdBc6O5wLK1G7MKtGuNABVEUBnyMDI1HNPo3BRAQhxgylA+cmdjEyeq6FTKY62r0sBemw=="
+  val s1 = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJpc3MiLCJzdWIiOiJzdWIiLCJhdWQiOiJhdWQiLCJhdWQiOlsiYXVkIiwiYXVkMiJdLCJleHAiOjQyLCJuYmYiOjQyLCJpYXQiOjQyLCJqdGkiOiJqdGkiLCJmb28iOiJiYXIifQ==.9SCDyruJ9p0SGkzGdMdBc6O5wLK1G7MKtGuNABVEUBnyMDI1HNPo3BRAQhxgylA+cmdjEyeq6FTKY62r0sBemw=="
   val s2 = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJpc3MiLCJzdWIiOiJzdWIiLCJhdWQiOiJhdWQiLCJhdWQiOlsiYXVkIiwiYXVkMiJdLCJleHAiOjQyLCJuYmYiOjQyLCJpYXQiOjQyLCJqdGkiOiJqdGkiLCJmb28iOiJiYXIifQ==.9SCDyruJ9p0SGkzGdMdBc6O5wLK1G7MKtGuNABVEUBnyMDI1HNPo3BRAQhxgylA+cmdjEyeq6FTKY62r0sBw=="
   val s3 = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9eyJpc3MiOiJpc3MiLCJzdWIiOiJzdWIiLCJhdWQiOiJhdWQiLCJhdWQiOlsiYXVkIiwiYXVkMiJdLCJleHAiOjQyLCJuYmYiOjQyLCJpYXQiOjQyLCJqdGkiOiJqdGkiLCJmb28iOiJiYXIifQ==.9SCDyruJ9p0SGkzGdMdBc6O5wLK1G7MKtGuNABVEUBnyMDI1HNPo3BRAQhxgylA+cmdjEyeq6FTKY62r0sBw=="
 
 
-  println(s)
-
-
-  val r1 = Jws.validate(s)
+  val r1 = Jws.validate(s1)
   val r2 = Jws.validate(s2)
   val r3 = Jws.validate(s3)
 
