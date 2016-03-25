@@ -1,21 +1,19 @@
-package jwtExample
+package jwtExample2
 
+import java.util.Base64
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
-import java.util.Base64
 
-import scalaz._
-import Scalaz._
 import org.json4s._
-import org.json4s.jackson.{compactJson, parseJson, parseJsonOpt, prettyJson}
 import org.json4s.ext.scalaz.JsonScalaz._
-import shapeless._
-import shapeless.newtype._
-import shapeless.{:+:, Coproduct, _}
-import shapeless.syntax.std.tuple._
+import org.json4s.jackson.{compactJson, parseJsonOpt, prettyJson}
 import shapeless.syntax.std.traversable._
+import shapeless.syntax.std.tuple._
+import shapeless.{:+:, Coproduct, _}
 
 import scala.util.Try
+import scalaz.Scalaz._
+import scalaz._
 
 object JwtSimple extends App {
 
