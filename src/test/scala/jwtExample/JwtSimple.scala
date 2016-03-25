@@ -34,7 +34,7 @@ object JwtSimple extends App {
 
   type JwsCompact = String
   type JwsSignature = String
-  type Jwt = List[Claim]
+  type Jwt = Jws[List[Claim]]
 
   type JoseHeader = List[Header]
   // TODO only valid with an alg header
@@ -245,7 +245,7 @@ object JwtSimple extends App {
 
   object Jwt {
 
-    def sign(claims: List[Claim], secret: String, alg: Algorithm): Jws[Jwt] = {
+    def sign(claims: List[Claim], secret: String, alg: Algorithm): Jws[List[Claim]] = {
       val headers = List[Header](
         Header.Typ("JWT"),
         Header.Alg(alg)
@@ -253,7 +253,7 @@ object JwtSimple extends App {
 
       val headerAndPayload = Jws.encodeHeaderAndPayload(headers, claims)
       val mac = Jws.computeMac(headerAndPayload, alg, secret)
-      Jws[Jwt](headers, claims, mac)
+      Jws[List[Claim]](headers, claims, mac)
     }
 
     def compact(claims: List[Claim], secret: String, alg: Algorithm): JwsCompact = {
@@ -266,7 +266,7 @@ object JwtSimple extends App {
 
   // example
 
-  val jws1 = Jws[Jwt](
+  val jws1 = Jws[List[Claim]](
     List(
       Header.Typ("foo"),
       Header.Cty("bar"),
@@ -289,7 +289,7 @@ object JwtSimple extends App {
 
 
   val json = jws1.toJson
-  val sig2 = json.read[Jws[Jwt]] getOrElse ???
+  val sig2 = json.read[Jws[List[Claim]]] getOrElse ???
 
   println(prettyJson(json))
   // TODO order of headers/claims
