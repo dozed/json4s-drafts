@@ -12,21 +12,6 @@ trait ReadExt { self: Types =>
 
   def validate2[A:JSONR](json: JValue): Result[A] = implicitly[JSONR[A]].read(json)
 
-  implicit class JArrayExt(v: JArray) {
-    def head: JValue = v.children.head
-    def tail: JValue = JArray(v.children.tail)
-  }
-
-  implicit class JValueExt(v: JValue) {
-    def isDefined: Boolean = !isEmpty
-
-    def isEmpty = v match {
-      case JNothing => true
-      case JNull => true
-      case _ => false
-    }
-  }
-
   implicit class StringExt(s: String) {
     def json = org.json4s.jackson.parseJson(s)
     def validate[A: JSONR]: ValidationNel[Error, A] = implicitly[JSONR[A]].read(json)
