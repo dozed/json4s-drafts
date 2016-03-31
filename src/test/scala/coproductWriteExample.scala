@@ -1,3 +1,5 @@
+import org.json4s.jackson.prettyJson
+
 import org.json4s.ext.scalaz.JsonScalaz._
 import org.json4s.ext.scalaz.JsonScalaz.auto._
 
@@ -19,8 +21,22 @@ object coproductWriteExample extends App {
   def milliliter(value: Double): Measure = Milliliter(value)
 
   println(gram(50).toJson)
-  // JObject(List((value,JDouble(50.0))))
+  // JObject(List((Gram,JObject(List((value,JDouble(50.0)))))))
+
+  println(prettyJson(gram(50).toJson))
+  //  {
+  //    "Gram" : {
+  //      "value" : 50.0
+  //    }
+  //  }
 
   println(Gram(50).toJson)
+  // JObject(List((value,JDouble(50.0))))
+
+  // TODO fix reading
+  println(gram(50).toJson.read[Measure])
+  // JObject(List((value,JDouble(50.0))))
+  // Exception in thread "main" java.lang.RuntimeException: no _tpe flag, not possible to discriminate types
+
 
 }
