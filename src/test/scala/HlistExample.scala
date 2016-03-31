@@ -1,41 +1,11 @@
 import org.json4s._
-import org.json4s.jackson._
+import org.json4s.jackson.{parseJson, compactJson}
 import org.json4s.ext.scalaz.JsonScalaz._
 
 import shapeless._
 import scalaz._, Scalaz._
 
 object HlistExample extends App {
-
-  object ProductReader extends ProductTypeClassCompanion[JSONR] {
-    override val typeClass: ProductTypeClass[JSONR] = new ProductTypeClass[JSONR] {
-      override def product[H, T <: HList](ch: JSONR[H], ct: JSONR[T]): JSONR[::[H, T]] = new JSONR[H :: T] {
-        override def read(value: JValue): Result[::[H, T]] = {
-          value match {
-
-            case x:JArray =>
-              {
-                ch.read(x.head) |@|  ct.read(x.tail)
-              }.apply((h, t) => h :: t)
-
-            case x =>
-              UnexpectedJSONError(x, classOf[JArray]).asInstanceOf[Error].failureNel
-
-          }
-        }
-      }
-
-      override def emptyProduct: JSONR[HNil] = JSON.read[HNil](_ => HNil.successNel)
-
-      override def project[F, G](instance: => JSONR[G], to: (F) => G, from: (G) => F): JSONR[F] = new JSONR[F] {
-        override def read(value: JValue): Result[F] = {
-          instance.read(value) map (g => from(g))
-        }
-      }
-    }
-  }
-
-  import ProductReader._
 
   implicitly[JSONR[String]]
   implicitly[JSONR[List[String]]]
@@ -45,6 +15,16 @@ object HlistExample extends App {
   val x = json.read[String :: Int :: HNil]
 
   println(x)
-  // ReadSuccess(hey :: 42 :: HNil)
+  // \/-(hey :: 42 :: HNil)
+
+  implicitly[JSONW[String]]
+  implicitly[JSONW[List[String]]]
+  implicitly[JSONW[String :: Int :: HNil]]
+
+
+  val x2 = ("hey" :: 42 :: List("foo", "bar") :: HNil).toJson
+
+  println(compactJson(x2))
+  // ["hey",42,["foo","bar"]]
 
 }

@@ -6,6 +6,7 @@ import javax.crypto.spec.SecretKeySpec
 
 import org.json4s._
 import org.json4s.ext.scalaz.JsonScalaz._
+import org.json4s.ext.scalaz.JsonScalaz.auto._
 import org.json4s.jackson.{compactJson, parseJsonOpt, prettyJson}
 import shapeless.syntax.std.traversable._
 import shapeless.syntax.std.tuple._

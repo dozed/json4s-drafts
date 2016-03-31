@@ -6,10 +6,8 @@ import scalaz._
 import std.option._
 import syntax.applicative._
 import syntax.validation._
-import shapeless._
 import shapeless.ops.coproduct.Inject
 import shapeless.Coproduct
-import shapeless.:+:
 
 trait Types extends Base {
   type Result[+A] = ValidationNel[Error, A]
@@ -75,110 +73,8 @@ trait Types extends Base {
     }
   }
 
-  // TODO make optional
-  object JSONR extends LabelledTypeClassCompanion[JSONR] {
-
-    object typeClass extends LabelledTypeClass[JSONR] {
-      def emptyProduct = new JSONR[HNil] {
-        def read(value: JValue) = HNil.successNel
-      }
-
-      def product[F, T <: HList](name: String, sh: JSONR[F], st: JSONR[T]) = new JSONR[F :: T] {
-        def read(v: JValue): Result[F :: T] = {
-
-          val head: Result[F] = v match {
-            case x:JObject => (x \ name).validate[F](sh)
-            case _ => Fail(name, s"Could not read value")
-          }
-
-          val tail: Result[T] = st.read(v)
-
-          (head |@| tail) { case (f, t) => f :: t }
-        }
-      }
-
-      def project[F, G](instance: => JSONR[G], to: F => G, from: G => F) = new JSONR[F] {
-        def read(v: JValue): Result[F] = instance.read(v) map from
-      }
-
-      // TODO too specific, maybe remove
-      override def coproduct[L, R <: Coproduct](name: String, cl: => JSONR[L], cr: => JSONR[R]): JSONR[:+:[L, R]] = {
-        new JSONR[L :+: R] {
-          override def read(json: JValue): Result[L :+: R] = {
-            (json \ "_tpe").validate[String] match {
-              case Success(tpe) =>
-                if (tpe == name) cl.read(json) map (x => Inl.apply[L, R](x))
-                else cr.read(json) map (x => Inr.apply[L, R](x))
-              case _ =>
-                sys.error("no _tpe flag, not possible to discriminate types")
-            }
-          }
-        }
-      }
-
-      override def emptyCoproduct: JSONR[CNil] = {
-        new JSONR[CNil] {
-          override def read(json: JValue): Result[CNil] = {
-            Fail("", s"Could not read from $json")
-          }
-        }
-      }
-    }
-
-  }
-
-
-  // TODO make optional
-  object JSONW extends LabelledTypeClassCompanion[JSONW] {
-
-    object typeClass extends LabelledTypeClass[JSONW] {
-      def emptyProduct = new JSONW[HNil] {
-        override def write(a: HNil) = JObject()
-      }
-
-      def product[F, T <: HList](name: String, sh: JSONW[F], st: JSONW[T]) = new JSONW[F :: T] {
-        override def write(value: F :: T): JValue = {
-
-          // is a value
-          val head: JValue = sh.write(value.head)
-
-          // is a JObject
-          val tail: JValue = st.write(value.tail)
-
-          tail match {
-            case x: JObject => JObject((name -> head) :: x.obj)
-            case _ => JObject((name -> head))
-          }
-        }
-      }
-
-      override def project[F, G](instance: => JSONW[G], to: (F) => G, from: (G) => F): JSONW[F] = {
-        new JSONW[F] {
-          def write(f: F): JValue = instance.write(to(f))
-        }
-      }
-
-      override def coproduct[L, R <: Coproduct](name: String, cl: => JSONW[L], cr: => JSONW[R]): JSONW[L :+: R] = {
-        new JSONW[L :+: R] {
-          override def write(value: L :+: R): JValue = value match {
-            case Inl(l) => cl.write(l)
-            case Inr(r) => cr.write(r)
-          }
-        }
-      }
-
-      override def emptyCoproduct: JSONW[CNil] = {
-        new JSONW[CNil] {
-          override def write(value: CNil): JValue = JNothing
-        }
-      }
-    }
-
-  }
-
   case class JSONWContext[C, A](a: (C, A))
 
-  // TODO split up in JSONW and JSONR companion objects
   object JSON {
 
     // validation
@@ -245,4 +141,4 @@ trait Types extends Base {
     JObject(fields.toList.map { case (n, v) => JField(n, v) })
 }
 
-object JsonScalaz extends Types with Lifting with Base with Dsl with ReadExt with WriteExt with Tuples with JsonShapeless
+object JsonScalaz extends JValueExt with Types with Lifting with Base with Dsl with ReadExt with WriteExt with Tuples with JsonShapeless

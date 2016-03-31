@@ -1,4 +1,5 @@
 import org.json4s.ext.scalaz.JsonScalaz._
+import org.json4s.ext.scalaz.JsonScalaz.auto._
 
 object coproductWriteExample extends App {
 

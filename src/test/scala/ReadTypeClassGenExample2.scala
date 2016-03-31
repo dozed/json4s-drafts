@@ -1,6 +1,7 @@
 import org.json4s._
 import org.json4s.jackson.prettyJson
 import org.json4s.ext.scalaz.JsonScalaz._
+import org.json4s.ext.scalaz.JsonScalaz.auto._
 
 object ReadTypeClassGenExample2 extends App {
 
