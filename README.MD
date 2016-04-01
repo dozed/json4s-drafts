@@ -7,6 +7,9 @@ Adds:
   - `JSON[A]`
     - for shapeless HList, Coproduct and NewType
     - TypeClass derivation for LabelledGeneric (product and coroduct)
+  - Typeclass instances
+    - `Contravariant[JSONW]` to re-use existing writers
+    - `Monad[JSONR]` for applicative, functor and monadic parsing
   - Methods to define `JSON[A]`/`JSONR[A]`/`JSONW[A]`
     - `JSON.json[A:JSONW:JSONR]: JSON[A]`                  (`JSON[A]` from instances)
     - `JSON.read[A](f: JValue => Result[A]): JSONR[A]`     (applicative parsing)
@@ -15,9 +18,6 @@ Adds:
     - `JSON.writeL[A:JSONW]: JSONW[A]`
     - `JSON.write(f: A => JValue): JSONW[A]`               (write json)
     - `JSON.write.context[C, A](f: (C, A) => JValue): JSONW[JSONWContext[C, A]]`   (context-dependent JSON writer)
-  - Typeclass instances
-    - `Contravariant[JSONW]` to re-use existing writers
-    - `Monad[JSONR]` for applicative, functor and monadic parsing
   - Typeclass-based DSL to construct JSON
   - Things
     - [Context dependent writers](https://github.com/dozed/json4s-drafts/blob/master/src/test/scala/ContextDependentWriterExample.scala)
