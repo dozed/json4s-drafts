@@ -22,13 +22,10 @@ object DynamicJValue1 extends App {
     implicit val booJson = JSON[Boo]
   }
 
-  implicit val dynamicJValueRead = JSON.read[DynamicJValue] { json =>
-    DynamicJValue.dyn(json).successNel
-  }
-
-  implicit val dynamicJValueWrite = JSON.write[DynamicJValue] { dyn =>
-    dyn.raw
-  }
+  implicit val dynamicJValueJson = JSON.json[DynamicJValue](
+    json => DynamicJValue.dyn(json).successNel,
+    _.raw
+  )
 
   val json = parseJson(text)
 
