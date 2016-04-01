@@ -32,6 +32,14 @@ trait Types extends Base {
       (NoSuchFieldError(name, json):Error).failureNel
   }
 
+  implicit class ValidationExt[A](res: Result[A]) {
+    def require: A = res.fold(_ => sys.error("require"), identity)
+  }
+
+  implicit class EitherExt[A](res: Error \/ A) {
+    def require: A = res.fold(_ => sys.error("require"), identity)
+  }
+
   implicit def JValueMonoid: Monoid[JValue] = Monoid.instance(_ ++ _, JNothing)
   implicit def JValueEqual: Equal[JValue] = Equal.equalA
 
@@ -78,6 +86,11 @@ trait Types extends Base {
 
   object JSON {
 
+    def json[A:JSONR:JSONW]: JSON[A] = new JSON[A] {
+      override def read(json: JValue): Result[A] = implicitly[JSONR[A]].read(json)
+      override def write(value: A): JValue = implicitly[JSONW[A]].write(value)
+    }
+
     // validation
     def read[A](f: JValue => Result[A]): JSONR[A] = new JSONR[A] {
       def read(json: JValue) = f(json)
@@ -112,7 +125,7 @@ trait Types extends Base {
     def read(json: JValue) = f(json)
   }
 
-  implicit class JSONROps(json: JValue) {
+  implicit class JSONRExt(json: JValue) {
     def validate[A: JSONR]: ValidationNel[Error, A] = implicitly[JSONR[A]].read(json)
     def read[A: JSONR]: Error \/ A = implicitly[JSONR[A]].read(json).disjunction.leftMap(_.head)
 
