@@ -6,7 +6,7 @@ Adds:
 
   - Typeclass-based DSL to construct JSON
   - Methods to define `JSON[A]`/`JSONR[A]`/`JSONW[A]`
-    - `JSON.json[A:JSONW:JSONR]: JSON[A]`                  (JSON[A] from instances)
+    - `JSON.json[A:JSONW:JSONR]: JSON[A]`                  (JSON`[A]` from instances)
     - `JSON.read[A](f: JValue => Result[A]): JSONR[A]`     (applicative parsing)
     - `JSON.readE[A](f: JValue => Error \/ A): JSONR[A]`   (monadic parsing)
     - `JSON.readL[A:JSONL]: JSONL[A]`                      (implicit lookup)
