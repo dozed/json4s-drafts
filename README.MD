@@ -4,7 +4,9 @@ Drafts for [json4s-scalaz](https://github.com/json4s/json4s/tree/3.4/scalaz): [c
 
 Adds:
 
-  - Typeclass-based DSL to construct JSON
+  - `JSON[A]`
+    - for shapeless HList, Coproduct and NewType
+    - TypeClass derivation for LabelledGeneric (product and coroduct)
   - Methods to define `JSON[A]`/`JSONR[A]`/`JSONW[A]`
     - `JSON.json[A:JSONW:JSONR]: JSON[A]`                  (`JSON[A]` from instances)
     - `JSON.read[A](f: JValue => Result[A]): JSONR[A]`     (applicative parsing)
@@ -16,8 +18,10 @@ Adds:
   - Typeclass instances
     - `Contravariant[JSONW]` to re-use existing writers
     - `Monad[JSONR]` for applicative, functor and monadic parsing
-  - `JSON[A]` for shapeless HList, Coproduct and NewType
-  - `JSON[A]` TypeClass derivation for LabelledGeneric (product and coroduct)
+  - Typeclass-based DSL to construct JSON
+  - Things
+    - [Context dependent writers](https://github.com/dozed/json4s-drafts/blob/master/src/test/scala/ContextDependentWriterExample.scala)
+    - [Coproduct encodings & JValue transformations](https://github.com/dozed/json4s-drafts/blob/master/src/test/scala/coproductEncodingsExample.scala)
 
 
 ## Writing JSON with `JSONW[A]`
