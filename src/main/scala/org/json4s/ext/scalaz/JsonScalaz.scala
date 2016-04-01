@@ -8,8 +8,6 @@ import syntax.applicative._
 import syntax.validation._
 import syntax.contravariant._
 import Validation._
-import shapeless.ops.coproduct.Inject
-import shapeless.Coproduct
 
 trait Types extends Base {
   type Result[+A] = ValidationNel[Error, A]
@@ -172,10 +170,6 @@ trait Types extends Base {
   implicit class JSONROps(json: JValue) {
     def validate[A: JSONR]: ValidationNel[Error, A] = implicitly[JSONR[A]].read(json)
     def read[A: JSONR]: Error \/ A = implicitly[JSONR[A]].read(json).disjunction.leftMap(_.head)
-
-    def validateC[A:JSONR, C <: Coproduct](implicit inj: Inject[C, A]): Result[C] = {
-      implicitly[JSONR[A]].read(json).map(t => Coproduct[C](t))
-    }
   }
 
   implicit class JSONWOps[A](a: A) {

@@ -5,10 +5,18 @@ import org.json4s.ext.scalaz.JValueExts._
 import shapeless.newtype._
 import shapeless.labelled._
 import shapeless.{Coproduct, :+:, _}
+import shapeless.ops.coproduct.Inject
 
 import scalaz._, Scalaz._
 
 trait JsonShapeless { self: Types =>
+
+  implicit class JSONRShapelessOps(json: JValue) {
+    def validateC[A:JSONR, C <: Coproduct](implicit inj: Inject[C, A]): Result[C] = {
+      implicitly[JSONR[A]].read(json).map(t => Coproduct[C](t))
+    }
+  }
+
 
   // JSON for a Newtype
 
