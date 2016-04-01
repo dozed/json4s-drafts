@@ -43,6 +43,8 @@ trait Types extends Base {
   implicit def JValueMonoid: Monoid[JValue] = Monoid.instance(_ ++ _, JNothing)
   implicit def JValueEqual: Equal[JValue] = Equal.equalA
 
+  type JValueTransform = JValue => Result[JValue]
+
   trait JSONR[A] { self =>
     def read(json: JValue): Result[A]
   }
@@ -85,6 +87,8 @@ trait Types extends Base {
   case class JSONWContext[C, A](a: (C, A))
 
   object JSON {
+
+    def transform(f: JValueTransform): JValueTransform = f
 
     def json[A:JSONR:JSONW]: JSON[A] = new JSON[A] {
       override def read(json: JValue): Result[A] = implicitly[JSONR[A]].read(json)

@@ -43,9 +43,8 @@ object coproductEncodingsExample extends App {
   )
 
 
-  type JValueTransform = JValue => Result[JValue]
 
-  val nestedEncodingToFlatEncoding: JValueTransform = { json =>
+  val nestedEncodingToFlatEncoding = JSON.transform { json =>
     for {
       jobj <- json.validate[JObject]
       x <- jobj.obj.headOption.toSuccessNel(UncategorizedError("no_type_tag", "JSON object has no type tag", List(jobj)))
@@ -55,7 +54,7 @@ object coproductEncodingsExample extends App {
     }
   }
 
-  val flatEncodingToNestedEncoding: JValueTransform = { json =>
+  val flatEncodingToNestedEncoding = JSON.transform { json =>
     for {
       jobj <- json.validate[JObject]
       key <- (jobj \ "type").validate[String]
