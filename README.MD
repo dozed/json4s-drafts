@@ -5,18 +5,18 @@ Drafts for [json4s-scalaz](https://github.com/json4s/json4s/tree/3.4/scalaz): [c
 Adds:
 
   - Typeclass-based DSL to construct JSON
-  - Methods to define JSONR[A]/JSONW[A]
-    - JSON.read[A](f: JValue => Result[A]): JSONR[A]     (applicative parsing)
-    - JSON.readE[A](f: JValue => Error \/ A): JSONR[A]   (monadic parsing)
-    - JSON.readL[A:JSONL]: JSONL[A]                      (implicit lookup)
-    - JSON.writeL[A:JSONW]: JSONW[A]
-    - JSON.write(f: A => JValue): JSONW[A]               (write json)
-    - JSON.write.context[C, A](f: (C, A) => JValue): JSONW[JSONWContext[C, A]]   (context-dependent JSON writer)
+  - Methods to define `JSON[A]`/`JSONR[A]`/`JSONW[A]`
+    - `JSON.read[A](f: JValue => Result[A]): JSONR[A]`     (applicative parsing)
+    - `JSON.readE[A](f: JValue => Error \/ A): JSONR[A]`   (monadic parsing)
+    - `JSON.readL[A:JSONL]: JSONL[A]`                      (implicit lookup)
+    - `JSON.writeL[A:JSONW]: JSONW[A]`
+    - `JSON.write(f: A => JValue): JSONW[A]`               (write json)
+    - `JSON.write.context[C, A](f: (C, A) => JValue): JSONW[JSONWContext[C, A]]`   (context-dependent JSON writer)
   - Typeclass instances
-    - Contravariant[JSONW] to re-use existing writers
-    - Monad[JSONR] for applicative, functor and monadic parsing
-  - JSONR[A]/JSONW[A] for shapeless HList, CoProduct and NewType
-  - JSONR[A]/JSONW[A] TypeClass derivation for LabelledGeneric (product and coroduct)
+    - `Contravariant[JSONW]` to re-use existing writers
+    - `Monad[JSONR]` for applicative, functor and monadic parsing
+  - `JSON[A]` for shapeless HList, CoProduct and NewType
+  - `JSON[A]` TypeClass derivation for LabelledGeneric (product and coroduct)
 
 
 ## Writing JSON with `JSONW[A]`
