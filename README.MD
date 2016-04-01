@@ -136,8 +136,10 @@ case class Handful(value: Double) extends Measure
 case class Pieces(value: Double) extends Measure
 case class Milliliter(value: Double) extends Measure
 
+
 object Measure {
   import org.json4s.ext.scalaz.JsonScalaz.auto._
+  // derive a JSON[Measure]
   implicit val measure = JSON.json[Measure]
 }
 
