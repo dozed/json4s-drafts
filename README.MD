@@ -10,6 +10,8 @@ Adds:
   - Typeclass instances
     - `Contravariant[JSONW]` to re-use existing writers
     - `Monad[JSONR]` for applicative, functor and monadic parsing
+    - `JSON[B].xmap[B](f1: A => B, f2: B => A): JSON[B]`
+    - `JSON[B].exmap[B](f1: A => Result[B], f2: B => A): JSON[B]`
   - Methods to define `JSON[A]`/`JSONR[A]`/`JSONW[A]`
     - `JSON.json[A:JSONW:JSONR]: JSON[A]`                  (`JSON[A]` from instances)
     - `JSON.read[A](f: JValue => Result[A]): JSONR[A]`     (applicative parsing)
