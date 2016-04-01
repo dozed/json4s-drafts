@@ -57,7 +57,7 @@ object coproductEncodingsExample extends App {
   val flatEncodingToNestedEncoding = JSON.transform { json =>
     for {
       jobj <- json.validate[JObject]
-      key <- (jobj \ "type").validate[String]
+      key <- (jobj \ "type").validate[String] ||| Fail("no_type_tag", "JSON object has no type tag", List(jobj))
       fields = jobj.filterField { case (k,v) => k =/= "type" }
     } yield {
       JObject(key -> JObject(fields))
