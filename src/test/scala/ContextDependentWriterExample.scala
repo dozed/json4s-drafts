@@ -33,7 +33,7 @@ object ContextDependentWriterExample extends App {
 
   case class BroadcastContext(privacy: Privacy, parent: Document)
 
-  implicit val itemCreatedMessage = JSON.write.context[BroadcastContext, ItemCreatedMessage] { case (BroadcastContext(privacy, document), msg) =>
+  implicit val itemCreatedMessage = JSON.context[BroadcastContext, ItemCreatedMessage] { case (BroadcastContext(privacy, document), msg) =>
 
     if (privacy == "public") {
 

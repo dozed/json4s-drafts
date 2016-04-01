@@ -150,18 +150,13 @@ trait Types extends Base {
 
     def writeL[A:JSONW]: JSONW[A] = implicitly[JSONW[A]]
 
-    object write {
-
-      def apply[A](f: A => JValue): JSONW[A] = new JSONW[A] {
-        override def write(a: A): JValue = f(a)
-      }
-
-      def nil[A]: JSONW[A] = write[A](_ => JNothing)
-
-      def context[C, A](f: (C, A) => JValue): JSONW[JSONWContext[C, A]] = write[JSONWContext[C, A]](ca => f.tupled(ca.a))
-
+    def write[A](f: A => JValue): JSONW[A] = new JSONW[A] {
+      override def write(a: A): JValue = f(a)
     }
 
+    def zero[A]: JSONW[A] = write[A](_ => JNothing)
+
+    def context[C, A](f: (C, A) => JValue): JSONW[JSONWContext[C, A]] = write[JSONWContext[C, A]](ca => f.tupled(ca.a))
 
   }
 
