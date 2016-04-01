@@ -147,6 +147,20 @@ implicit val instantRead: JSONR[Instant] = JSON.readL[Int] map (x => new Instant
 ```
 
 
+### emap
+
+```scala
+implicit val algorithmRead: JSONR[Algorithm] = JSON.readL[String].map(_.toUpperCase).emap {
+  case "HS256" => Algorithm.HS256.successNel
+  case "HS384" => Algorithm.HS384.successNel
+  case "HS512" => Algorithm.HS512.successNel
+  case "NONE" => Algorithm.NONE.successNel
+  case x => Fail.apply("", "one of: HS256, HS384, HS512, NONE", List(x))
+}
+
+println(json.read[Algorithm].require)
+```
+
 
 ## Automatically deriving `JSONR[A]` and `JSONW[A]`
 
