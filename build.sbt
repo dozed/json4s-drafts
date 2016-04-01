@@ -20,10 +20,6 @@ libraryDependencies ++= Seq(
   "org.scalatra.rl" %% "rl" % "0.4.10" % "test",
   "net.databinder.dispatch" %% "dispatch-core" % "0.11.2" % "test",
   // "org.http4s" %% "http4s-blaze-client" % "0.12.1" % "test",
-  "org.scala-lang" % "scala-reflect" % scalaVersion.value % "provided",
-  "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",
-  "org.typelevel" %% "macro-compat" % "1.1.1",
-  compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
   compilerPlugin("org.spire-math" %% "kind-projector" % "0.7.1")
 )
 
