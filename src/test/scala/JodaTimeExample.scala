@@ -15,6 +15,9 @@ object JodaTimeExample extends App {
   import org.joda.time.Period
   import org.joda.time.format.ISODateTimeFormat
 
+
+  implicit val instantJson = JSON.json[Long].xmap[Instant](x => new Instant(x), i => i.getMillis)
+
   val dateTimeFormat = {
     ISODateTimeFormat.dateTime.withOffsetParsed
   }
@@ -23,10 +26,6 @@ object JodaTimeExample extends App {
 
   implicit val durationWrite = JSON.write[Duration] { d =>
     JInt(d.getMillis)
-  }
-
-  implicit val instantWrite = JSON.write[Instant] { i =>
-    JInt(i.getMillis)
   }
 
   implicit val dateTimeWrite = JSON.write[DateTime] { d =>
@@ -59,7 +58,6 @@ object JodaTimeExample extends App {
   // JSONR[A] reader typeclass from JValue => ValidationNel[Error, A] function
 
   implicit val durationRead = JSON.readL[Int] map (x => new Duration(x))
-  implicit val instantRead = JSON.readL[Int] map (x => new Instant(x))
 
   implicit val intervalRead = JSON.read[Interval] { json =>
     (
@@ -132,13 +130,12 @@ object JodaTimeExample extends App {
     localTime: LocalTime
   )
 
+  object AutoJson {
+    import org.json4s.ext.scalaz.JsonScalaz.auto._
+    implicit val dates = JSON.json[Dates]
+  }
 
-  // generate the writer
-  implicit val datesWrite: JSONW[Dates] = ??? // writerGen[Dates]
-
-  val testJson = Dates(new Duration(10), new Instant(10), new Interval(10, 200), DateTime.now(), DateTime.now().toLocalDate, DateTime.now().toLocalTime).toJson
-
-  println(prettyJson(testJson))
+  import AutoJson._
 
 
   val testJson2 =
@@ -165,8 +162,7 @@ object JodaTimeExample extends App {
       |}
     """.stripMargin
 
-  // TODO
-  //  val res = parseJson(testJson2).validate[Dates]
-  //  println(res)
+  val res = parseJson(testJson2).validate[Dates]
+  println(res)
 
 }

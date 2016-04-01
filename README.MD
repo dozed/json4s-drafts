@@ -19,11 +19,21 @@ Adds:
     - `JSON.readL[A:JSONL]: JSONL[A]`                      (implicit lookup)
     - `JSON.writeL[A:JSONW]: JSONW[A]`
     - `JSON.write(f: A => JValue): JSONW[A]`               (write json)
-    - `JSON.write.context[C, A](f: (C, A) => JValue): JSONW[JSONWContext[C, A]]`   (context-dependent JSON writer)
+    - `JSON.writeContext[C, A](f: (C, A) => JValue): JSONW[JSONWContext[C, A]]`   (context-dependent JSON writer)
   - Typeclass-based DSL to construct JSON
   - Things
     - [Context dependent writers](https://github.com/dozed/json4s-drafts/blob/master/src/test/scala/ContextDependentWriterExample.scala)
     - [Coproduct JSON encodings & JValue transformations](https://github.com/dozed/json4s-drafts/blob/master/src/test/scala/coproductEncodingsExample.scala)
+
+
+
+## Derive `JSON[B]` from `JSON[A]` with `xmap`
+
+Assuming there is a `JSON[Long]`, one can derive a `JSON[Instant]` straightfowardly with `xmap`:
+
+```scala
+implicit val instantJson = JSON.json[Long].xmap[Instant](x => new Instant(x), i => i.getMillis)
+```
 
 
 ## Writing JSON with `JSONW[A]`

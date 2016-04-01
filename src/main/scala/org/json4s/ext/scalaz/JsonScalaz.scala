@@ -154,9 +154,9 @@ trait Types extends Base {
       override def write(a: A): JValue = f(a)
     }
 
-    def zero[A]: JSONW[A] = write[A](_ => JNothing)
+    def writeZero[A]: JSONW[A] = write[A](_ => JNothing)
 
-    def context[C, A](f: (C, A) => JValue): JSONW[JSONWContext[C, A]] = write[JSONWContext[C, A]](ca => f.tupled(ca.a))
+    def writeContext[C, A](f: (C, A) => JValue): JSONW[JSONWContext[C, A]] = write[JSONWContext[C, A]](ca => f.tupled(ca.a))
 
   }
 
