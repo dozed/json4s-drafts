@@ -178,6 +178,12 @@ trait Types extends Base {
     }
   }
 
+  implicit class JSONWOps[A](a: A) {
+    def toJson(implicit w: JSONW[A]): JValue = w.write(a)
+
+    def toJson[C](c: C)(implicit w: JSONW[JSONWContext[C, A]]) = w.write(JSONWContext(c, a))
+  }
+
   def fromJSON[A: JSONR](json: JValue): Result[A] = implicitly[JSONR[A]].read(json)
   def toJSON[A: JSONW](value: A): JValue = implicitly[JSONW[A]].write(value)
 
@@ -199,4 +205,4 @@ trait Types extends Base {
     JObject(fields.toList.map { case (n, v) => JField(n, v) })
 }
 
-object JsonScalaz extends Types with JValueExts with Lifting with Base with Dsl with ReadExt with WriteExt with Tuples with JsonShapeless
+object JsonScalaz extends Types with JValueExts with Lifting with Base with Dsl with ReadExt with Tuples with JsonShapeless
