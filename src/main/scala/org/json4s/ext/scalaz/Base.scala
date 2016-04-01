@@ -1,10 +1,12 @@
 package org.json4s.ext.scalaz
 
 import org.json4s._
+import org.json4s.ext.scalaz.JValueExts._
 
 import scalaz._
 import std.list._
 import std.option._
+import syntax.std.option._
 import syntax.validation._
 import syntax.traverse._
 import scala.collection.breakOut
@@ -67,6 +69,11 @@ trait Base { this: Types =>
   implicit def jvalueJSON: JSON[JValue] = new JSON[JValue] {
     def read(json: JValue) = Validation.success(json)
     def write(value: JValue) = value
+  }
+
+  implicit def jobjectJSON: JSON[JObject] = new JSON[JObject] {
+    def read(json: JValue) = json.asJObject.toSuccessNel[Error](UnexpectedJSONError(json, classOf[JObject]))
+    def write(value: JObject) = value
   }
 
   implicit def listJSONR[A: JSONR]: JSONR[List[A]] = new JSONR[List[A]] {

@@ -1,13 +1,14 @@
 package org.json4s.ext.scalaz
 
 import org.json4s._
+import org.json4s.ext.scalaz.JValueExts._
 import shapeless.newtype._
 import shapeless.labelled._
 import shapeless.{Coproduct, :+:, _}
 
 import scalaz._, Scalaz._
 
-trait JsonShapeless extends JValueExt { self: Types =>
+trait JsonShapeless { self: Types =>
 
   // JSON for a Newtype
 
@@ -61,7 +62,7 @@ trait JsonShapeless extends JValueExt { self: Types =>
   }
 
   implicit lazy val readCNil: JSONR[CNil] = new JSONR[CNil] {
-    override def read(json: JValue): Result[CNil] = ???
+    override def read(json: JValue): Result[CNil] = Fail("invalid_json_for_coproduct", "no element of this coproduct matched the json")
   }
 
   implicit def writeCCons[H, T <: Coproduct](implicit writeHead: Lazy[JSONW[H]], writeTail: Lazy[JSONW[T]]): JSONW[H :+: T] = {
@@ -112,14 +113,14 @@ trait JsonShapeless extends JValueExt { self: Types =>
                                                                      readTail: Lazy[JSONR[T]]
                                                                     ): JSONR[FieldType[K, H] :: T] =
     new JSONR[FieldType[K, H] :: T] {
-      def read(c: JValue): Result[FieldType[K, H] :: T] = {
+      def read(json: JValue): Result[FieldType[K, H] :: T] = {
 
-        val head: Result[H] = c match {
-          case x:JObject => (x \ key.value.name).validate[H](readHead.value)
-          case _ => Fail(key.value.name, s"Could not read value")
+        val head: Result[H] = json match {
+          case obj:JObject => (obj \ key.value.name).validate[H](readHead.value)
+          case _ => Fail(key.value.name, s"Could not read value", List(json))
         }
 
-        val tail: Result[T] = readTail.value.read(c)
+        val tail: Result[T] = readTail.value.read(json)
 
         (head |@| tail) { case (f, t) => labelled.field[K](f) :: t }
 
@@ -151,17 +152,17 @@ trait JsonShapeless extends JValueExt { self: Types =>
       def write(a: A): JValue = write0.value.write(gen.to(a))
     }
 
-    implicit final def readCoproduct[K <: Symbol, L, R <: Coproduct](implicit key: Witness.Aux[K], readHead: Lazy[JSONR[L]], readTail: Lazy[JSONR[R]]): JSONR[FieldType[K, L] :+: R] =
-      new JSONR[FieldType[K, L] :+: R] {
-        def read(json: JValue): Result[FieldType[K, L] :+: R] = {
-
-
-          (json \ "_tpe").validate[String] match {
-            case Success(tpe) =>
-              if (tpe == key.value.name) readHead.value.read(json) map (x => Inl.apply[FieldType[K, L], R](labelled.field[K](x)))
-              else readTail.value.read(json) map (x => Inr.apply[FieldType[K, L], R](x))
+    // try to read the coproduct element H with key
+    implicit final def readCoproduct[K <: Symbol, H, T <: Coproduct](implicit key: Witness.Aux[K], readHead: Lazy[JSONR[H]], readTail: Lazy[JSONR[T]]): JSONR[FieldType[K, H] :+: T] =
+      new JSONR[FieldType[K, H] :+: T] {
+        def read(json: JValue): Result[FieldType[K, H] :+: T] = {
+          (json \ key.value.name).validate[JObject] match {
+            case Success(obj) =>
+              readHead.value.read(obj)
+                .map(x => Inl.apply[FieldType[K, H], T](labelled.field[K](x)))
             case _ =>
-              sys.error("no _tpe flag, not possible to discriminate types")
+              readTail.value.read(json) map (x => Inr.apply[FieldType[K, H], T](x))
+
           }
         }
       }

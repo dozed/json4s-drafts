@@ -27,19 +27,35 @@ object coproductReadExample extends App {
 
   val xs: List[Measure] = List(Gram(10.0), Teaspoon(3))
 
-  val json = parseJson(
+  val jsonOk = parseJson(
     """
       |[{
-      |  "_tpe": "Gram",
-      |  "value": 10.0
+      |  "Gram": {
+      |    "value": 10.0
+      |  }
       |}, {
-      |  "_tpe": "Teason",
-      |  "value": 2.0
+      |  "Teaspoon": {
+      |    "value": 2.0
+      |  }
+      |}]
+    """.stripMargin
+  )
+
+  val jsonKo = parseJson(
+    """
+      |[{
+      |  "Teasoon": {
+      |    "value": 2.0
+      |  }
       |}]
     """.stripMargin
   )
 
 
-  println(json.read[List[Measure]])
+  println(jsonOk.read[List[Measure]])
+  // \/-(List(Gram(10.0), Teaspoon(2.0)))
+
+  println(jsonKo.read[List[Measure]])
+  // -\/(UncategorizedError(invalid_json_for_coproduct,no element of this coproduct matched the json,List()))
 
 }

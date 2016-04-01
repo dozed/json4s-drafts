@@ -2,7 +2,9 @@ package org.json4s.ext.scalaz
 
 import org.json4s._
 
-trait JValueExt {
+object JValueExts extends JValueExts
+
+trait JValueExts {
 
   implicit class JArrayExt(v: JArray) {
     def head: JValue = v.children.head
@@ -23,7 +25,11 @@ trait JValueExt {
       case _ => None
     }
 
-  }
+    def asJObject: Option[JObject] = v match {
+      case obj: JObject => Some(obj)
+      case _ => None
+    }
 
+  }
 
 }

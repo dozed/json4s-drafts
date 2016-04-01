@@ -33,10 +33,8 @@ object coproductWriteExample extends App {
   println(Gram(50).toJson)
   // JObject(List((value,JDouble(50.0))))
 
-  // TODO fix reading
   println(gram(50).toJson.read[Measure])
-  // JObject(List((value,JDouble(50.0))))
-  // Exception in thread "main" java.lang.RuntimeException: no _tpe flag, not possible to discriminate types
+  // \/-(Gram(50.0))
 
 
 }

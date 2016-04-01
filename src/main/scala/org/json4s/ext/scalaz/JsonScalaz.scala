@@ -6,6 +6,7 @@ import scalaz._
 import std.option._
 import syntax.applicative._
 import syntax.validation._
+import Validation._
 import shapeless.ops.coproduct.Inject
 import shapeless.Coproduct
 
@@ -141,4 +142,4 @@ trait Types extends Base {
     JObject(fields.toList.map { case (n, v) => JField(n, v) })
 }
 
-object JsonScalaz extends JValueExt with Types with Lifting with Base with Dsl with ReadExt with WriteExt with Tuples with JsonShapeless
+object JsonScalaz extends Types with JValueExts with Lifting with Base with Dsl with ReadExt with WriteExt with Tuples with JsonShapeless
