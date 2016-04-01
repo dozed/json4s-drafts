@@ -76,6 +76,11 @@ trait Base { this: Types =>
     def write(value: JObject) = value
   }
 
+  implicit def jarrayJSON: JSON[JArray] = new JSON[JArray] {
+    def read(json: JValue) = json.asJArray.toSuccessNel[Error](UnexpectedJSONError(json, classOf[JArray]))
+    def write(value: JArray) = value
+  }
+
   implicit def listJSONR[A: JSONR]: JSONR[List[A]] = new JSONR[List[A]] {
     def read(json: JValue) = json match {
       case JArray(xs) => 
