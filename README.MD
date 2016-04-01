@@ -32,18 +32,18 @@ case class Contact(email: String, phone: List[String])
 case class Item(label: String, amount: Double, price: Double)
 case class Order(orderId: String, contact: Contact, items: List[Item])
 
-implicit val contactWriter: JSONW[Contact] = write[Contact](c => {
+implicit val contactWriter: JSONW[Contact] = JSON.write[Contact](c => {
   ("email" -> c.email) ~
     ("phone" -> c.phone)
 })
 
-implicit val itemWriter: JSONW[Item] = write[Item](i => {
+implicit val itemWriter: JSONW[Item] = JSON.write[Item](i => {
   ("label" -> i.label) ~
     ("amount" -> i.amount) ~
     ("price" -> i.price)
 })
 
-implicit val orderWriter: JSONW[Order] = write[Order](o => {
+implicit val orderWriter: JSONW[Order] = JSON.write[Order](o => {
   ("orderId" -> o.orderId) ~
     ("contact" -> o.contact) ~
     ("items" -> o.items)
@@ -57,7 +57,36 @@ val order = Order(
     Item("bar item", 100, 2.50)
   )
 )
+
+order.toJson
 ```
+
+
+### JSONW is contravariant
+
+```scala
+sealed trait Algorithm
+
+object Algorithm {
+  case object HS256 extends Algorithm
+  case object HS384 extends Algorithm
+  case object HS512 extends Algorithm
+  case object NONE extends Algorithm
+}
+
+// JSONW[String] + (Algorithm => String) => JSONW[Algorithm] 
+implicit val algorithmWrite = JSON.writeL[String].contramap[Algorithm] {
+  case Algorithm.HS256 => "HS256"
+  case Algorithm.HS384 => "HS384"
+  case Algorithm.HS512 => "HS512"
+  case Algorithm.NONE => "NONE"
+}
+
+val json = (Algorithm.HS512:Algorithm).toJson
+println(json)
+// JString(HS512)
+```
+
 
 
 ## Reading JSON with `JSONR[A]`
@@ -79,7 +108,7 @@ Characteristics
 
  
 ```scala
-implicit val intervalRead: JSONR[Interval] = read[Interval] { json =>
+implicit val intervalRead: JSONR[Interval] = JSON.read[Interval] { json =>
   (
     (json \ "start").validate[Long] |@|
     (json \ "end").validate[Long]
@@ -100,7 +129,7 @@ Characteristics
 
 
 ```scala
-implicit val itemRead: JSONR[Item] = readE[Item]({ json =>
+implicit val itemRead: JSONR[Item] = JSON.readE[Item]({ json =>
   for {
     label <- (json \ "label").read[String]
     amount <- (json \ "amount" \ "value").read[Int]
@@ -113,8 +142,8 @@ implicit val itemRead: JSONR[Item] = readE[Item]({ json =>
 ### JSONR is a Functor
 
 ```scala
-implicit val durationRead: JSONR[Duration] = readL[Int] map (x => new Duration(x))
-implicit val instantRead: JSONR[Instant] = readL[Int] map (x => new Instant(x))
+implicit val durationRead: JSONR[Duration] = JSON.readL[Int] map (x => new Duration(x))
+implicit val instantRead: JSONR[Instant] = JSON.readL[Int] map (x => new Instant(x))
 ```
 
 
