@@ -27,4 +27,16 @@ object HlistExample extends App {
   println(compactJson(x2))
   // ["hey",42,["foo","bar"]]
 
+  case class Foo(x: Int)
+
+
+  // there is no JSONR[Foo] in implicit scope, therefore it does not compile (illTyped)
+  shapeless.test.illTyped(
+    """("hey" :: Foo(42) :: HNil).toJson.read[String :: Foo :: HNil]"""
+  )
+
+  // import JsonScalaz._ for automatic derivation of JSONR/JSONW typeclass instances
+  // import org.json4s.ext.scalaz.JsonScalaz.auto._
+
+
 }
