@@ -31,6 +31,8 @@ trait Types extends Base {
       (NoSuchFieldError(name, json):Error).failureNel
   }
 
+  case class JSONWContext[C, A](a: (C, A))
+
   implicit class ValidationExt[A](res: Result[A]) {
     def require: A = res.fold(_ => sys.error("require"), identity)
   }
@@ -122,8 +124,6 @@ trait Types extends Base {
 
   }
 
-  case class JSONWContext[C, A](a: (C, A))
-
   object JSON {
 
     def transform(f: JValueTransform): JValueTransform = f
@@ -139,18 +139,13 @@ trait Types extends Base {
     }
 
     // validation
-    def read[A](f: JValue => Result[A]): JSONR[A] = new JSONR[A] {
-      def read(json: JValue) = f(json)
-    }
+    def read[A](f: JValue => Result[A]): JSONR[A] = f
 
     // either
-    def readE[A](f: JValue => Error \/ A): JSONR[A] = new JSONR[A] {
-      def read(json: JValue) = f(json).validationNel
-    }
+    def readE[A](f: JValue => Error \/ A): JSONR[A] = (json: JValue) => f(json).validationNel
 
     // lookup
     def readL[A:JSONR]: JSONR[A] = implicitly[JSONR[A]]
-
     def writeL[A:JSONW]: JSONW[A] = implicitly[JSONW[A]]
 
     def write[A](f: A => JValue): JSONW[A] = new JSONW[A] {
@@ -158,24 +153,12 @@ trait Types extends Base {
     }
 
     def writeZero[A]: JSONW[A] = write[A](_ => JNothing)
-
     def writeContext[C, A](f: (C, A) => JValue): JSONW[JSONWContext[C, A]] = write[JSONWContext[C, A]](ca => f.tupled(ca.a))
 
   }
 
   implicit def Result2JSONR[A](f: JValue => Result[A]): JSONR[A] = new JSONR[A] {
     def read(json: JValue) = f(json)
-  }
-
-  implicit class JSONROps(json: JValue) {
-    def validate[A: JSONR]: ValidationNel[Error, A] = implicitly[JSONR[A]].read(json)
-    def read[A: JSONR]: Error \/ A = implicitly[JSONR[A]].read(json).disjunction.leftMap(_.head)
-  }
-
-  implicit class JSONWOps[A](a: A) {
-    def toJson(implicit w: JSONW[A]): JValue = w.write(a)
-
-    def toJson[C](c: C)(implicit w: JSONW[JSONWContext[C, A]]) = w.write(JSONWContext(c, a))
   }
 
   def fromJSON[A: JSONR](json: JValue): Result[A] = implicitly[JSONR[A]].read(json)
@@ -197,6 +180,19 @@ trait Types extends Base {
 
   def makeObj(fields: Traversable[(String, JValue)]): JObject = 
     JObject(fields.toList.map { case (n, v) => JField(n, v) })
+
+
+
+
+  implicit class JSONROps(json: JValue) {
+    def validate[A: JSONR]: ValidationNel[Error, A] = implicitly[JSONR[A]].read(json)
+    def read[A: JSONR]: Error \/ A = implicitly[JSONR[A]].read(json).disjunction.leftMap(_.head)
+  }
+
+  implicit class JSONWOps[A](a: A) {
+    def toJson(implicit w: JSONW[A]): JValue = w.write(a)
+    def toJson[C](c: C)(implicit w: JSONW[JSONWContext[C, A]]) = w.write(JSONWContext(c, a))
+  }
 }
 
 object JsonScalaz extends Types with JValueExts with Lifting with Base with Dsl with ReadExt with Tuples with JsonShapeless
