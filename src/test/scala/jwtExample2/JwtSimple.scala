@@ -103,26 +103,6 @@ object JwtSimple extends App {
 
   // instances
 
-  // TODO simplify 1:1 mapping
-  implicit def jwsJson[A:JSONR:JSONW]: JSON[Jws[A]] = new JSON[Jws[A]] {
-    override def write(value: Jws[A]): JValue = {
-      ("header" -> value.header) ~
-        ("payload" -> value.payload) ~
-        ("signature" -> value.signature)
-    }
-
-    override def read(json: JValue): Result[Jws[A]] = {
-
-      (for {
-        header <- (json \ "header").read[List[Header]]
-        payload <- (json \ "payload").read[A]
-        signature <- (json \ "signature").read[JwsSignature]
-      } yield {
-        Jws(header, payload, signature)
-      }).validationNel
-
-    }
-  }
 
   implicit lazy val readAud =
     JSON.readL[List[String]].map(x => Claim.Aud(stringOrList(x))) orElse
@@ -282,6 +262,30 @@ object JwtSimple extends App {
     }
 
   }
+
+  // TODO simplify 1:1 mapping
+  // TODO fix DSL, should work without toJson
+  implicit def jwsJson[A:JSONR:JSONW]: JSON[Jws[A]] = new JSON[Jws[A]] {
+    override def write(value: Jws[A]): JValue = {
+//      ("header" -> value.header.toJson) ~
+//        ("payload" -> value.payload) ~
+//        ("signature" -> value.signature)
+      ???
+    }
+
+    override def read(json: JValue): Result[Jws[A]] = {
+
+      (for {
+        header <- (json \ "header").read[List[Header]]
+        payload <- (json \ "payload").read[A]
+        signature <- (json \ "signature").read[JwsSignature]
+      } yield {
+        Jws(header, payload, signature)
+      }).validationNel
+
+    }
+  }
+
 
   // example
 
