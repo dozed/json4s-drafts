@@ -195,4 +195,4 @@ trait Types extends Base {
   }
 }
 
-object JsonScalaz extends Types with JValueExts with Lifting with Base with Dsl with ReadExt with Tuples with JsonShapeless
+object JsonScalaz extends Types with TupleMaps with JValueExts with Lifting with Base with Dsl with ReadExt with Tuples with JsonShapeless
