@@ -51,13 +51,13 @@ object JwtExample1 extends App {
   // TODO compiler hangs
   // x.toJson
 
-  println(prettyJson((x1 getOrElse ???).toJson))
+  println(prettyJson((x1.require).toJson))
 
 
   val x2 = headerJson.read[List[Header]]
 
   println(x2)
-  println(prettyJson((x2 getOrElse ???).toJson))
+  println(prettyJson((x2.require).toJson))
 
 }
 

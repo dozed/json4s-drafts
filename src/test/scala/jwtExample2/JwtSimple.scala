@@ -288,7 +288,7 @@ object JwtSimple extends App {
 
 
   val json = jws1.toJson
-  val sig2 = json.read[Jws[List[Claim]]] getOrElse ???
+  val sig2 = json.read[Jws[List[Claim]]].require
 
   println(prettyJson(json))
   // TODO order of headers/claims
