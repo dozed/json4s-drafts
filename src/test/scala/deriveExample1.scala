@@ -3,22 +3,13 @@ import org.json4s.ext.scalaz.JsonScalaz._
 import org.json4s.jackson.{parseJson, prettyJson}
 
 import scalaz._, Scalaz._
+import shapeless._
 
 object deriveExample1 extends App {
 
   case class Localization(locale: String, title: String, caption: String)
 
   case class Photo(id: String, file: String, localizations: NonEmptyList[Localization])
-
-
-  import shapeless._
-
-  // TODO
-  // - derive a JSON[A] from JSONR[A] and JSONW[A]
-  //  implicit def jsonFromJSONRW[A](implicit readA: JSONR[A], writeA: JSONW[A]): JSON[A] = new JSON[A] {
-  //    override def read(json: JValue): Result[A] = readA.read(json)
-  //    override def write(value: A): JValue = writeA.write(value)
-  //  }
 
 
   def derive[A](implicit gen: LabelledGeneric[A]) = new {
@@ -51,6 +42,13 @@ object deriveExample1 extends App {
     },
     nel => JArray(nel.list.map(x => toJSON(x)))
   )
+
+  // TODO
+  // - derive a JSON[A] from JSONR[A] and JSONW[A]
+  //  implicit def jsonFromJSONRW[A](implicit readA: JSONR[A], writeA: JSONW[A]): JSON[A] = new JSON[A] {
+  //    override def read(json: JValue): Result[A] = readA.read(json)
+  //    override def write(value: A): JValue = writeA.write(value)
+  //  }
 
   val photo1 = Photo("id", "file", Localization("locale", "title", "caption").wrapNel)
 
