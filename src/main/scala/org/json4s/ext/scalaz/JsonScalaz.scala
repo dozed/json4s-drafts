@@ -130,9 +130,14 @@ trait Types extends Base {
 
     def transform(f: JValueTransform): JValueTransform = f
 
-    def json[A:JSONR:JSONW]: JSON[A] = new JSON[A] {
+    def apply[A:JSONR:JSONW]: JSON[A] = new JSON[A] {
       override def read(json: JValue): Result[A] = implicitly[JSONR[A]].read(json)
       override def write(value: A): JValue = implicitly[JSONW[A]].write(value)
+    }
+
+    def json[A](f: JValue => Result[A], g: A => JValue): JSON[A] = new JSON[A] {
+      override def read(json: JValue): Result[A] = f(json)
+      override def write(value: A): JValue = g(value)
     }
 
     // validation

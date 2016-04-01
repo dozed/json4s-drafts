@@ -19,7 +19,7 @@ object DynamicJValue1 extends App {
 
   object Boo {
     import org.json4s.ext.scalaz.JsonScalaz.auto._
-    implicit val json = JSON.json[Boo]
+    implicit val booJson = JSON[Boo]
   }
 
   implicit val dynamicJValueRead = JSON.read[DynamicJValue] { json =>

@@ -18,7 +18,7 @@ object coproductReadExample extends App {
 
   object Measure {
     import org.json4s.ext.scalaz.JsonScalaz.auto._
-    implicit val measureJson = JSON.json[Measure]
+    implicit val measureJson = JSON[Measure]
   }
 
   def gram(value: Double): Measure = Gram(value)

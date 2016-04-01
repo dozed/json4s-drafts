@@ -13,7 +13,8 @@ Adds:
     - `JSON[B].xmap[B](f1: A => B, f2: B => A): JSON[B]`
     - `JSON[B].exmap[B](f1: A => Result[B], f2: B => A): JSON[B]`
   - Methods to define `JSON[A]`/`JSONR[A]`/`JSONW[A]`
-    - `JSON.json[A:JSONW:JSONR]: JSON[A]`                  (`JSON[A]` from instances)
+    - `JSON.apply[A:JSONW:JSONR]: JSON[A]`                              (`JSON[A]` from instances)
+    - `JSON.json[A](f: JValue => Result[A], g: A => JValue): JSON[A]`   (`JSON[A]` from functions)
     - `JSON.read[A](f: JValue => Result[A]): JSONR[A]`     (applicative parsing)
     - `JSON.readE[A](f: JValue => Error \/ A): JSONR[A]`   (monadic parsing)
     - `JSON.readL[A:JSONL]: JSONL[A]`                      (implicit lookup)
@@ -32,7 +33,7 @@ Adds:
 Assuming there is a `JSON[Long]`, one can derive a `JSON[Instant]` straightfowardly with `xmap`:
 
 ```scala
-implicit val instantJson = JSON.json[Long].xmap[Instant](x => new Instant(x), i => i.getMillis)
+implicit val instantJson = JSON.apply[Long].xmap[Instant](x => new Instant(x), i => i.getMillis)
 ```
 
 
@@ -199,7 +200,7 @@ case class Milliliter(value: Double) extends Measure
 object Measure {
   import org.json4s.ext.scalaz.JsonScalaz.auto._
   // derive a JSON[Measure]
-  implicit val measure = JSON.json[Measure]
+  implicit val measure = JSON.apply[Measure]
 }
 
 
