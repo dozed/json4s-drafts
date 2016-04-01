@@ -21,7 +21,7 @@ Adds:
   - Typeclass-based DSL to construct JSON
   - Things
     - [Context dependent writers](https://github.com/dozed/json4s-drafts/blob/master/src/test/scala/ContextDependentWriterExample.scala)
-    - [Coproduct encodings & JValue transformations](https://github.com/dozed/json4s-drafts/blob/master/src/test/scala/coproductEncodingsExample.scala)
+    - [Coproduct JSON encodings & JValue transformations](https://github.com/dozed/json4s-drafts/blob/master/src/test/scala/coproductEncodingsExample.scala)
 
 
 ## Writing JSON with `JSONW[A]`
