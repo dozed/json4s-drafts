@@ -18,27 +18,4 @@ trait ReadExt { self: Types =>
     def read[A: JSONR]: Error \/ A = implicitly[JSONR[A]].read(json).disjunction.leftMap(_.head)
   }
 
-  implicit class JSONRExt[A](fa: JSONR[A]) {
-
-    def emap[B](f: A => Result[B]): JSONR[B] = new JSONR[B] {
-      override def read(json: JValue): Result[B] = {
-        fa.read(json) match {
-          case Success(a) => f(a)
-          case f@Failure(error) => f
-        }
-      }
-    }
-
-    def orElse[B >: A](fa2: JSONR[B]): JSONR[B] = new JSONR[B] {
-      override def read(json: JValue): Result[B] = {
-        fa.read(json) orElse fa2.read(json)
-      }
-    }
-
-    def |[B >: A](fa2: JSONR[B]): JSONR[B] = orElse(fa2)
-
-    def readE1(json: JValue): Error \/ A = fa.read(json).disjunction.leftMap(_.head)
-
-  }
-
 }

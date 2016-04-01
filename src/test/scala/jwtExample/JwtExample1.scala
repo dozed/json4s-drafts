@@ -48,9 +48,6 @@ object JwtExample1 extends App {
   val x1 = claimJson.read[List[Claim]]
   println(x1)
 
-  // TODO compiler hangs
-  // x.toJson
-
   println(prettyJson((x1.require).toJson))
 
 

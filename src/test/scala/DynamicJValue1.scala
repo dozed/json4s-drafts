@@ -4,7 +4,6 @@ object DynamicJValue1 extends App {
   import org.json4s._
   import org.json4s.jackson.{parseJson, compactJson}
   import org.json4s.ext.scalaz.JsonScalaz._
-  // import org.json4s.ext.scalaz.JsonScalaz.auto._
   import scalaz._, Scalaz._
 
   val text =

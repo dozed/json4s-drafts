@@ -1,7 +1,6 @@
 import org.json4s.jackson.prettyJson
 
 import org.json4s.ext.scalaz.JsonScalaz._
-import org.json4s.ext.scalaz.JsonScalaz.auto._
 
 object coproductWriteExample extends App {
 
@@ -12,6 +11,11 @@ object coproductWriteExample extends App {
   case class Handful(value: Double) extends Measure
   case class Pieces(value: Double) extends Measure
   case class Milliliter(value: Double) extends Measure
+
+  object Measure {
+    import org.json4s.ext.scalaz.JsonScalaz.auto._
+    implicit val json = JSON.json[Measure]
+  }
 
   def gram(value: Double): Measure = Gram(value)
   def teaspoon(value: Double): Measure = Teaspoon(value)
@@ -30,7 +34,7 @@ object coproductWriteExample extends App {
   //    }
   //  }
 
-  println(Gram(50).toJson)
+  println((Gram(50):Measure).toJson)
   // JObject(List((value,JDouble(50.0))))
 
   println(gram(50).toJson.read[Measure])

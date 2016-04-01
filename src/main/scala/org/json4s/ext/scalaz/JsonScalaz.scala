@@ -6,6 +6,7 @@ import scalaz._
 import std.option._
 import syntax.applicative._
 import syntax.validation._
+import syntax.contravariant._
 import Validation._
 import shapeless.ops.coproduct.Inject
 import shapeless.Coproduct
@@ -84,6 +85,45 @@ trait Types extends Base {
     }
   }
 
+  implicit class JSONRExt[A](fa: JSONR[A]) {
+
+    def emap[B](f: A => Result[B]): JSONR[B] = new JSONR[B] {
+      override def read(json: JValue): Result[B] = {
+        fa.read(json) match {
+          case Success(a) => f(a)
+          case f@Failure(error) => f
+        }
+      }
+    }
+
+    def orElse[B >: A](fa2: JSONR[B]): JSONR[B] = new JSONR[B] {
+      override def read(json: JValue): Result[B] = {
+        fa.read(json) orElse fa2.read(json)
+      }
+    }
+
+    def |[B >: A](fa2: JSONR[B]): JSONR[B] = orElse(fa2)
+
+    def readE1(json: JValue): Error \/ A = fa.read(json).disjunction.leftMap(_.head)
+
+  }
+
+  implicit class JSONExt[A](fa: JSON[A]) {
+
+    def xmap[B](f1: A => B, f2: B => A): JSON[B] = new JSON[B] {
+      override def write(value: B): JValue = (fa:JSONW[A]).contramap(f2).write(value)
+
+      override def read(json: JValue): Result[B] = (fa:JSONR[A]).map(f1).read(json)
+    }
+
+    def exmap[B](f1: A => Result[B], f2: B => A): JSON[B] = new JSON[B] {
+      override def write(value: B): JValue = (fa:JSONW[A]).contramap(f2).write(value)
+
+      override def read(json: JValue): Result[B] = (fa:JSONR[A]).emap(f1).read(json)
+    }
+
+  }
+
   case class JSONWContext[C, A](a: (C, A))
 
   object JSON {
@@ -129,7 +169,7 @@ trait Types extends Base {
     def read(json: JValue) = f(json)
   }
 
-  implicit class JSONRExt(json: JValue) {
+  implicit class JSONROps(json: JValue) {
     def validate[A: JSONR]: ValidationNel[Error, A] = implicitly[JSONR[A]].read(json)
     def read[A: JSONR]: Error \/ A = implicitly[JSONR[A]].read(json).disjunction.leftMap(_.head)
 
