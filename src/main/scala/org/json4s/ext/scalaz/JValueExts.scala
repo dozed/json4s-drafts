@@ -6,26 +6,34 @@ object JValueExts extends JValueExts
 
 trait JValueExts {
 
-  implicit class JArrayExt(v: JArray) {
-    def head: JValue = v.children.head
-    def tail: JValue = JArray(v.children.tail)
+  implicit class JArrayExt(json: JArray) {
+    def head: JValue = json.children.head
+    def tail: JArray = JArray(json.children.tail)
+
+    def map(f: JValue => JValue): JArray = {
+      JArray(json.children.map(f))
+    }
+
+    def flatMap(f: JValue => List[JValue]): JArray = {
+      JArray(json.children.flatMap(x => f(x).toList))
+    }
   }
 
-  implicit class JValueExt(v: JValue) {
+  implicit class JValueExt(json: JValue) {
     def isDefined: Boolean = !isEmpty
 
-    def isEmpty = v match {
+    def isEmpty = json match {
       case JNothing => true
       case JNull => true
       case _ => false
     }
 
-    def asJArray: Option[JArray] = v match {
+    def asJArray: Option[JArray] = json match {
       case arr: JArray => Some(arr)
       case _ => None
     }
 
-    def asJObject: Option[JObject] = v match {
+    def asJObject: Option[JObject] = json match {
       case obj: JObject => Some(obj)
       case _ => None
     }
