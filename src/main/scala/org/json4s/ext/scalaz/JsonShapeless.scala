@@ -162,28 +162,23 @@ trait JsonShapeless { self: Types =>
     Thing(readR.value.value.map(gen.from))
 
   // coproduct with nested encoding
-  implicit def coproductRead[K <: Symbol, H, T <: Coproduct](implicit key: Witness.Aux[K], readHead: Lazy[Thing[JSONR[H]]], readTail: Lazy[JSONR[T]]): Thing[JSONR[FieldType[K, H] :+: T]] =
-    Thing[JSONR[FieldType[K, H] :+: T]] {
-      new JSONR[FieldType[K, H] :+: T] {
-        def read(json: JValue): Result[FieldType[K, H] :+: T] = {
-          (json \ key.value.name).validate[JObject].fold(
-            _ => readTail.value.read(json) map (x => Inr.apply[FieldType[K, H], T](x)),
-            obj => readHead.value.value.read(obj).map(x => Inl.apply[FieldType[K, H], T](labelled.field[K](x)))
-          )
-        }
+  implicit def coproductRead[K <: Symbol, H, T <: Coproduct](implicit key: Witness.Aux[K], readHead: Lazy[Thing[JSONR[H]]], readTail: Lazy[JSONR[T]]): JSONR[FieldType[K, H] :+: T] =
+    new JSONR[FieldType[K, H] :+: T] {
+      def read(json: JValue): Result[FieldType[K, H] :+: T] = {
+        (json \ key.value.name).validate[JObject].fold(
+          _ => readTail.value.read(json) map (x => Inr.apply[FieldType[K, H], T](x)),
+          obj => readHead.value.value.read(obj).map(x => Inl.apply[FieldType[K, H], T](labelled.field[K](x)))
+        )
       }
     }
 
-  implicit def coproductWrite[K <: Symbol, H, T <: Coproduct](implicit key: Witness.Aux[K], writeHead: Lazy[Thing[JSONW[H]]], writeTail: Lazy[JSONW[T]]): Thing[JSONW[FieldType[K, H] :+: T]] =
-    Thing[JSONW[FieldType[K, H] :+: T]] {
+  implicit def coproductWrite[K <: Symbol, H, T <: Coproduct](implicit key: Witness.Aux[K], writeHead: Lazy[Thing[JSONW[H]]], writeTail: Lazy[JSONW[T]]): JSONW[FieldType[K, H] :+: T] =
       new JSONW[FieldType[K, H] :+: T] {
         def write(a: FieldType[K, H] :+: T): JValue = a match {
           case Inl(h) => JObject(key.value.name -> writeHead.value.value.write(h))
           case Inr(t) => writeTail.value.write(t)
         }
       }
-    }
-
 
 
   object auto {
