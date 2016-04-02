@@ -4,7 +4,7 @@ import org.json4s._
 import org.json4s.ext.scalaz.JsonScalaz._
 import org.specs2.mutable.Specification
 
-object PrioritySpecs extends Specification {
+object ResolutionPrioritySpecs extends Specification {
 
   case class CC(i: Int, s: String)
 
@@ -43,7 +43,7 @@ object PrioritySpecs extends Specification {
 
   }
 
-  "A default conversion can be derived" in {
+  "An instance can be derived explicitely" in {
 
     implicit val ccJSON = deriveJSON[CC]
 
@@ -56,6 +56,35 @@ object PrioritySpecs extends Specification {
   }
 
   "A custom conversion can be defined" in {
+
+    val json1 = toJSON(value1)
+    val readValue1 = fromJSON[CC2](expectedJson1)
+
+    json1 should beEqualTo(expectedJson1)
+    readValue1.require should beEqualTo(value1)
+
+  }
+
+  "An instance can be derived implicitly" in {
+
+    import org.json4s.ext.scalaz.JsonScalaz.auto._
+
+    val json0 = toJSON(value0)
+    val readValue0 = fromJSON[CC](expectedJson0)
+
+    json0 should beEqualTo(expectedJson0)
+    readValue0.require should beEqualTo(value0)
+
+  }
+
+  "An instance in implicit scope overrides implicit derivation" in {
+
+    import org.json4s.ext.scalaz.JsonScalaz.auto._
+
+    implicit val ccJSON: JSON[CC2] = JSON[(Int, String)].xmap[CC2](
+      tp => CC2(tp._1, tp._2),
+      cc => (cc.i, cc.s)
+    )
 
     val json1 = toJSON(value1)
     val readValue1 = fromJSON[CC2](expectedJson1)
