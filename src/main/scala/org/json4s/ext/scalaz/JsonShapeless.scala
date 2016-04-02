@@ -81,7 +81,7 @@ trait JsonShapeless { self: Types =>
 
 
 
-  // some for JSONR
+  // same for JSONR
 
   implicit val readHNil: JSONR[HNil] =
     new JSONR[HNil] {
@@ -138,7 +138,7 @@ trait JsonShapeless { self: Types =>
 
 
 
-  // automatic derivation for Thing[A]
+  // a LabelledGeneric can be derived to Thing[JSONR[A]]
 
   // LabelledGeneric representing a labelled HList (fields of a case class, product)
   implicit def productRead[A, R <: HList](implicit gen: LabelledGeneric.Aux[A, R], readR: Lazy[JSONR[R]]): Thing[JSONR[A]] =
