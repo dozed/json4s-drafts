@@ -130,12 +130,7 @@ object JodaTimeExample extends App {
     localTime: LocalTime
   )
 
-  object AutoJson {
-    import org.json4s.ext.scalaz.JsonScalaz.auto._
-    implicit val datesJson = JSON[Dates]
-  }
-
-  import AutoJson._
+  implicit val datesJson = deriveJSON[Dates]
 
 
   val testJson2 =

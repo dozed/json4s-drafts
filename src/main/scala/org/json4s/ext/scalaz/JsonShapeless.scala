@@ -11,25 +11,16 @@ import scalaz._, Scalaz._
 
 trait JsonShapeless { self: Types =>
 
+  case class Thing[A](value: A)
 
-  // syntax for a JSONR[A] where A is a part of a Coproduct
-
-  implicit class JSONRShapelessExt(json: JValue) {
-    def validateC[A:JSONR, C <: Coproduct](implicit inj: Inject[C, A]): Result[C] = {
-      implicitly[JSONR[A]].read(json).map(t => Coproduct[C](t))
-    }
+  def deriveJSONR[A](implicit readA: Thing[JSONR[A]]): JSONR[A] = readA.value
+  def deriveJSONW[A](implicit writeA: Thing[JSONW[A]]): JSONW[A] = writeA.value
+  def deriveJSON[A](implicit readA: Thing[JSONR[A]], writeA: Thing[JSONW[A]]): JSON[A] = new JSON[A] {
+    override def write(value: A): JValue = writeA.value.write(value)
+    override def read(json: JValue): Result[A] = readA.value.read(json)
   }
 
 
-  // JSON for a Newtype
-
-  implicit def writeNewtype[A, Ops <: { def value: A }](implicit write0: Lazy[JSONW[A]], mk: A => Ops): JSONW[Newtype[A, Ops]] = {
-    write0.value.contramap[Newtype[A, Ops]](a => a.value)
-  }
-
-  implicit def readNewtype[A, Ops](implicit read0: JSONR[A]): JSONR[Newtype[A, Ops]] = {
-    read0.map((x: A) => newtype[A, Ops](x))
-  }
 
 
   // JSONW for
@@ -146,52 +137,79 @@ trait JsonShapeless { self: Types =>
 
 
 
-  // JSON for LabelledGeneric product and coproduct
-  // inspired from: https://github.com/travisbrown/circe/tree/master/generic/shared/src/main/scala/io/circe/generic
-  object auto {
 
-    implicit def writeCoproduct[K <: Symbol, H, T <: Coproduct](implicit key: Witness.Aux[K], readHead: Lazy[JSONW[H]], readTail: Lazy[JSONW[T]]): JSONW[FieldType[K, H] :+: T] =
-      new JSONW[FieldType[K, H] :+: T] {
-        def write(a: FieldType[K, H] :+: T): JValue = a match {
-          case Inl(h) => JObject(
-            key.value.name -> readHead.value.write(h)
-          )
-          case Inr(t) => readTail.value.write(t)
-        }
-      }
+  // automatic derivation for Thing[A]
 
-    implicit def writeAdt[A, R <: Coproduct](implicit gen: LabelledGeneric.Aux[A, R], write0: Lazy[JSONW[R]]): JSONW[A] = new JSONW[A] {
-      def write(a: A): JValue = write0.value.write(gen.to(a))
-    }
+  // LabelledGeneric representing a labelled HList (fields of a case class, product)
+  implicit def productRead[A, R <: HList](implicit gen: LabelledGeneric.Aux[A, R], readR: Lazy[JSONR[R]]): Thing[JSONR[A]] =
+    Thing(readR.value.map(gen.from))
 
+  implicit def productWrite[A, R <: HList](implicit gen: LabelledGeneric.Aux[A, R], writeR: Lazy[JSONW[R]]): Thing[JSONW[A]] =
+    Thing(writeR.value.contramap(gen.to))
 
-    implicit def writeCaseClass[A, R <: HList](implicit gen: LabelledGeneric.Aux[A, R], write0: Lazy[JSONW[R]]): JSONW[A] = new JSONW[A] {
-      def write(a: A): JValue = write0.value.write(gen.to(a))
-    }
+  // LabelledGeneric representing a labelled Coproduct (element of an inheritance hierarchy, sum)
+  implicit def adtWrite[A, R <: Coproduct](implicit gen: LabelledGeneric.Aux[A, R], writeR: Lazy[JSONW[R]]): Thing[JSONW[A]] =
+    Thing(writeR.value.contramap(gen.to))
 
-    // try to read the coproduct element H with key
-    implicit final def readCoproduct[K <: Symbol, H, T <: Coproduct](implicit key: Witness.Aux[K], readHead: Lazy[JSONR[H]], readTail: Lazy[JSONR[T]]): JSONR[FieldType[K, H] :+: T] =
+  implicit def adtRead[A, R <: Coproduct](implicit gen: LabelledGeneric.Aux[A, R], readR: Lazy[JSONR[R]]): Thing[JSONR[A]] =
+    Thing(readR.value.map(gen.from))
+
+  // we need also those
+  implicit def adtThingWrite[A, R <: Coproduct](implicit gen: LabelledGeneric.Aux[A, R], writeR: Lazy[Thing[JSONW[R]]]): Thing[JSONW[A]] =
+    Thing(writeR.value.value.contramap(gen.to))
+
+  implicit def adtThingRead[A, R <: Coproduct](implicit gen: LabelledGeneric.Aux[A, R], readR: Lazy[Thing[JSONR[R]]]): Thing[JSONR[A]] =
+    Thing(readR.value.value.map(gen.from))
+
+  // coproduct with nested encoding
+  implicit def coproductRead[K <: Symbol, H, T <: Coproduct](implicit key: Witness.Aux[K], readHead: Lazy[Thing[JSONR[H]]], readTail: Lazy[JSONR[T]]): Thing[JSONR[FieldType[K, H] :+: T]] =
+    Thing[JSONR[FieldType[K, H] :+: T]] {
       new JSONR[FieldType[K, H] :+: T] {
         def read(json: JValue): Result[FieldType[K, H] :+: T] = {
-          (json \ key.value.name).validate[JObject] match {
-            case Success(obj) =>
-              readHead.value.read(obj)
-                .map(x => Inl.apply[FieldType[K, H], T](labelled.field[K](x)))
-            case _ =>
-              readTail.value.read(json) map (x => Inr.apply[FieldType[K, H], T](x))
-
-          }
+          (json \ key.value.name).validate[JObject].fold(
+            _ => readTail.value.read(json) map (x => Inr.apply[FieldType[K, H], T](x)),
+            obj => readHead.value.value.read(obj).map(x => Inl.apply[FieldType[K, H], T](labelled.field[K](x)))
+          )
         }
       }
-
-    implicit final def readAdt[A, R <: Coproduct](implicit gen: LabelledGeneric.Aux[A, R], read0: Lazy[JSONR[R]]): JSONR[A] = new JSONR[A] {
-      def read(c: JValue): Result[A] = read0.value.read(c).map(gen.from)
     }
 
-    implicit final def readCaseClass[A, R <: HList](implicit gen: LabelledGeneric.Aux[A, R], read0: Lazy[JSONR[R]]): JSONR[A] = new JSONR[A] {
-      def read(c: JValue): Result[A] = read0.value.read(c).map(gen.from)
+  implicit def coproductWrite[K <: Symbol, H, T <: Coproduct](implicit key: Witness.Aux[K], writeHead: Lazy[Thing[JSONW[H]]], writeTail: Lazy[JSONW[T]]): Thing[JSONW[FieldType[K, H] :+: T]] =
+    Thing[JSONW[FieldType[K, H] :+: T]] {
+      new JSONW[FieldType[K, H] :+: T] {
+        def write(a: FieldType[K, H] :+: T): JValue = a match {
+          case Inl(h) => JObject(key.value.name -> writeHead.value.value.write(h))
+          case Inr(t) => writeTail.value.write(t)
+        }
+      }
     }
 
+
+
+  object auto {
+    // implicit def thingFoo[A, F[_]](implicit fa: Thing[F[A]]): F[A] = fa.value.value
+    implicit def thingFoo1[A](implicit fa: Thing[JSONR[A]]): JSONR[A] = fa.value
+    implicit def thingFoo2[A](implicit fa: Thing[JSONW[A]]): JSONW[A] = fa.value
+  }
+
+
+  // syntax for a JSONR[A] where A is a part of a Coproduct
+
+  implicit class JSONRShapelessExt(json: JValue) {
+    def validateC[A:JSONR, C <: Coproduct](implicit inj: Inject[C, A]): Result[C] = {
+      implicitly[JSONR[A]].read(json).map(t => Coproduct[C](t))
+    }
+  }
+
+
+  // JSON for a Newtype
+
+  implicit def writeNewtype[A, Ops <: { def value: A }](implicit write0: Lazy[JSONW[A]], mk: A => Ops): JSONW[Newtype[A, Ops]] = {
+    write0.value.contramap[Newtype[A, Ops]](a => a.value)
+  }
+
+  implicit def readNewtype[A, Ops](implicit read0: JSONR[A]): JSONR[Newtype[A, Ops]] = {
+    read0.map((x: A) => newtype[A, Ops](x))
   }
 
 

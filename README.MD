@@ -4,9 +4,6 @@ Drafts for [json4s-scalaz](https://github.com/json4s/json4s/tree/3.4/scalaz): [c
 
 Adds:
 
-  - `JSON[A]`
-    - for shapeless HList, Coproduct and NewType
-    - TypeClass derivation for LabelledGeneric (product and coroduct)
   - Typeclass instances
     - `Contravariant[JSONW]` to re-use existing writers
     - `Monad[JSONR]` for applicative, functor and monadic parsing
@@ -21,6 +18,11 @@ Adds:
     - `JSON.writeL[A:JSONW]: JSONW[A]`
     - `JSON.write(f: A => JValue): JSONW[A]`               (write json)
     - `JSON.writeContext[C, A](f: (C, A) => JValue): JSONW[JSONWContext[C, A]]`   (context-dependent JSON writer)
+  - `JSON[A]` for shapeless types
+    - HList, Coproduct and NewType
+    - Labelled Generic HList (fields of a case class, product)
+    - Labelled Generic Coproduct (inhabitants of a type, sum)
+    - `deriveJSON[A]`, `deriveJSONR[A]`, `deriveJSONW[A]`
   - Typeclass-based DSL to construct JSON
   - Things
     - [Context dependent writers](https://github.com/dozed/json4s-drafts/blob/master/src/test/scala/ContextDependentWriterExample.scala)
@@ -179,11 +181,12 @@ println(json.read[Algorithm].require)
 ```
 
 
-## Automatically deriving `JSONR[A]` and `JSONW[A]`
+## Deriving `JSONR[A]` and `JSONW[A]` instances for generic representations of types
 
+For the generic representations labelled HList and labelled Coproduct instance can be derived.
+A labelled HList represents the fields of a class. A labelled Coproduct represents the inhabitants of a type.
+There are three methods: `deriveJSON[A]`, `deriveJSONR[A]`, `deriveJSONW[A]`  
 
-Import `import org.json4s.ext.scalaz.JsonScalaz.auto._`.
-Note how the scope of the implicit is limited to the Measure companion object.
 
 ```scala
 import org.json4s.ext.scalaz.JsonScalaz._
@@ -196,12 +199,11 @@ case class Handful(value: Double) extends Measure
 case class Pieces(value: Double) extends Measure
 case class Milliliter(value: Double) extends Measure
 
-
-object Measure {
-  import org.json4s.ext.scalaz.JsonScalaz.auto._
-  // derive a JSON[Measure]
-  implicit val measure = JSON.apply[Measure]
-}
+implicit def queryParamJSON = deriveJSON[QueryParam]
+implicit def cookieJSON     = deriveJSON[Cookie]
+implicit def requestJSON    = deriveJSON[Request]
+implicit def responseJSON   = deriveJSON[Response]
+implicit def entryJSON      = deriveJSON[Entry]
 
 
 def gram(value: Double): Measure = Gram(value)
@@ -229,3 +231,5 @@ println(gram(50).toJson.read[Measure])
 ```
 
 
+For automatic derivation without defining the implicit values it is also possible to import `import org.json4s.ext.scalaz.JsonScalaz.auto._`.
+Beware, this can lead to unexpected compilation successes.

@@ -1,7 +1,6 @@
 import org.json4s._
 import org.json4s.jackson._
 import org.json4s.ext.scalaz.JsonScalaz._
-import org.json4s.ext.scalaz.JsonScalaz.auto._
 
 import scalaz._, Scalaz._
 
@@ -21,6 +20,9 @@ object ReadExample3 extends App {
 
   case class A(x: Int)
   case class Foo(i: Int, s: String, x: List[String], a: A)
+
+  implicit val aJSON = deriveJSON[A]
+  implicit val fooJSON = deriveJSON[Foo]
 
   val foo = Foo(0, "foo", List("foo", "bar"), A(200))
 

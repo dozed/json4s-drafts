@@ -1,7 +1,11 @@
 import org.json4s._
 import org.json4s.jackson.parseJson
 import org.json4s.ext.scalaz.JsonScalaz._
-import org.json4s.ext.scalaz.JsonScalaz.auto._
+import shapeless.LabelledGeneric
+
+import shapeless._
+import scalaz._
+import scalaz.syntax.functor._
 
 object ReadAutoExample extends App {
 
@@ -35,6 +39,14 @@ object ReadAutoExample extends App {
   case class Contact(email: String, phone: List[String])
   case class Item(label: String, amount: Int, price: Double)
   case class Order(orderId: String, contact: Contact, items: List[Item])
+
+  object Codecs {
+    implicit val itemJSON = deriveJSON[Item]
+    implicit val contactJSON = deriveJSON[Contact]
+    implicit val orderJSON = deriveJSON[Order]
+  }
+
+  import Codecs._
 
 
   println(orderJson.validate[Order])

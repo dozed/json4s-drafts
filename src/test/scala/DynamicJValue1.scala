@@ -18,8 +18,7 @@ object DynamicJValue1 extends App {
   case class Boo(s: String, i: Int, dyn: DynamicJValue)
 
   object Boo {
-    import org.json4s.ext.scalaz.JsonScalaz.auto._
-    implicit val booJson = JSON[Boo]
+    implicit val booJson = deriveJSON[Boo]
   }
 
   implicit val dynamicJValueJson = JSON.json[DynamicJValue](

@@ -29,14 +29,9 @@ object HlistExample extends App {
 
   case class Foo(x: Int)
 
+  implicit val fooJSON = deriveJSON[Foo]
 
-  // there is no JSONR[Foo] in implicit scope, therefore it does not compile (illTyped)
-  shapeless.test.illTyped(
-    """("hey" :: Foo(42) :: HNil).toJson.read[String :: Foo :: HNil]"""
-  )
-
-  // import JsonScalaz._ for automatic derivation of JSONR/JSONW typeclass instances
-  // import org.json4s.ext.scalaz.JsonScalaz.auto._
+  ("hey" :: Foo(42) :: HNil).toJson.read[String :: Foo :: HNil]
 
 
 }

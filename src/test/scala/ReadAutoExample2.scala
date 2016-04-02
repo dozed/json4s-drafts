@@ -1,10 +1,10 @@
 import org.json4s._
 import org.json4s.jackson.prettyJson
 import org.json4s.ext.scalaz.JsonScalaz._
-import org.json4s.ext.scalaz.JsonScalaz.auto._
 
 object ReadAutoExample2 extends App {
 
+  // beware: can lead to unexpected compilation successes
 
   case class QueryParam(name: String, value: String)
   // TODO expires as value of type Any crashes the compiler
@@ -29,7 +29,15 @@ object ReadAutoExample2 extends App {
     Response(200)
   )
 
-  val json: JValue = entry.toJson
+  // import org.json4s.ext.scalaz.JsonScalaz.auto._
+
+  implicit def queryParamJSON = deriveJSON[QueryParam]
+  implicit def cookieJSON     = deriveJSON[Cookie]
+  implicit def requestJSON    = deriveJSON[Request]
+  implicit def responseJSON   = deriveJSON[Response]
+  implicit def entryJSON      = deriveJSON[Entry]
+
+  val json: JValue = ??? // entry.toJson
   val res = json.read[Entry]
 
   println(prettyJson(json))
