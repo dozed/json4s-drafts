@@ -3,7 +3,7 @@ import org.json4s.jackson.parseJson
 import org.json4s.ext.scalaz.JsonScalaz._
 import org.json4s.ext.scalaz.JsonScalaz.auto._
 
-object ReadTypeClassGenExample extends App {
+object ReadAutoExample extends App {
 
 
   val orderDoc =

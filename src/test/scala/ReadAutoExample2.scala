@@ -3,7 +3,7 @@ import org.json4s.jackson.prettyJson
 import org.json4s.ext.scalaz.JsonScalaz._
 import org.json4s.ext.scalaz.JsonScalaz.auto._
 
-object ReadTypeClassGenExample2 extends App {
+object ReadAutoExample2 extends App {
 
 
   case class QueryParam(name: String, value: String)

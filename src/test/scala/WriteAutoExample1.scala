@@ -1,7 +1,7 @@
 import org.json4s.ext.scalaz.JsonScalaz._
 import org.json4s.ext.scalaz.JsonScalaz.auto._
 
-object WriteTypeClassGenExample extends App {
+object WriteAutoExample1 extends App {
 
   case class Contact(email: String, phone: List[String])
   case class Item(label: String, amount: Double, price: Double)
