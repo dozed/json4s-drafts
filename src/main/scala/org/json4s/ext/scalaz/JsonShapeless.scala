@@ -188,8 +188,8 @@ trait JsonShapeless { self: Types =>
 
   object auto {
     // implicit def thingFoo[A, F[_]](implicit fa: Thing[F[A]]): F[A] = fa.value.value
-    implicit def thingFoo1[A](implicit fa: Thing[JSONR[A]]): JSONR[A] = fa.value
-    implicit def thingFoo2[A](implicit fa: Thing[JSONW[A]]): JSONW[A] = fa.value
+    implicit def thingJSONR[A](implicit fa: Thing[JSONR[A]]): JSONR[A] = fa.value
+    implicit def thingJSONW[A](implicit fa: Thing[JSONW[A]]): JSONW[A] = fa.value
   }
 
 
