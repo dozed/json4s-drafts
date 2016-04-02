@@ -19,6 +19,8 @@ libraryDependencies ++= Seq(
   "org.scalaz" %% "scalaz-concurrent" % "7.1.7" % "test",
   "org.scalatra.rl" %% "rl" % "0.4.10" % "test",
   "net.databinder.dispatch" %% "dispatch-core" % "0.11.2" % "test",
+  "org.specs2" %% "specs2-core" % "3.6.6" % "test",
+  "org.scalacheck" %% "scalacheck" % "1.12.5" % "test",
   // "org.http4s" %% "http4s-blaze-client" % "0.12.1" % "test",
   compilerPlugin("org.spire-math" %% "kind-projector" % "0.7.1")
 )
