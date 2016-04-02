@@ -73,9 +73,14 @@ trait Base { this: Types =>
 
   implicit def jvalueJSONW[A <: JValue] = JSON.write[A](identity)
 
-  implicit def jvalueJSONR[A <: JValue]: JSONR[A] = JSON.read[A] {
-    case a:A => a.successNel
-    case json => Fail.unexpected(json, classOf[JValue])
+  implicit def jobjectJSONR: JSONR[JObject] = JSON.read[JObject] {
+    case a:JObject => a.successNel
+    case json => Fail.unexpected(json, classOf[JObject])
+  }
+
+  implicit def jarrayJSONR: JSONR[JArray] = JSON.read[JArray] {
+    case a:JArray => a.successNel
+    case json => Fail.unexpected(json, classOf[JArray])
   }
 
   implicit def listJSONR[A: JSONR]: JSONR[List[A]] = new JSONR[List[A]] {
