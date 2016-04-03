@@ -10,15 +10,6 @@ object ResolutionPrioritySpecs extends Specification {
 
   case class CC2(i: Int, s: String)
 
-  object CC2 {
-
-    implicit val ccJSON: JSON[CC2] = JSON.of[(Int, String)].xmap[CC2](
-      tp => CC2(tp._1, tp._2),
-      cc => (cc.i, cc.s)
-    )
-
-  }
-
   val value0 = CC(42, "a")
 
   val expectedJson0 = JObject(
@@ -56,6 +47,11 @@ object ResolutionPrioritySpecs extends Specification {
   }
 
   "An instance can be defined explicitely" in {
+
+    implicit val ccJSON: JSON[CC2] = JSON.of[(Int, String)].xmap[CC2](
+      tp => CC2(tp._1, tp._2),
+      cc => (cc.i, cc.s)
+    )
 
     val json1 = toJSON(value1)
     val readValue1 = fromJSON[CC2](expectedJson1)
