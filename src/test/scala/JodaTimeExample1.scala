@@ -4,7 +4,7 @@ import org.json4s.ext.scalaz.JsonScalaz._
 
 import scalaz._, Scalaz._
 
-object JodaTimeExample extends App {
+object JodaTimeExample1 extends App {
 
   import org.joda.time.Duration
   import org.joda.time.Instant
@@ -16,13 +16,11 @@ object JodaTimeExample extends App {
   import org.joda.time.format.ISODateTimeFormat
 
 
+  // define JSONW and JSONR instances for joda-time types
+
   implicit val instantJson = JSON.of[Long].xmap[Instant](x => new Instant(x), i => i.getMillis)
 
-  val dateTimeFormat = {
-    ISODateTimeFormat.dateTime.withOffsetParsed
-  }
-
-  // JSONW[A] writer typeclass from A => JValue function
+  val dateTimeFormat = ISODateTimeFormat.dateTime.withOffsetParsed
 
   implicit val durationWrite = JSON.write[Duration] { d =>
     JInt(d.getMillis)
@@ -53,9 +51,6 @@ object JodaTimeExample extends App {
   implicit val periodWrite = JSON.write[Period] { p =>
     JString(p.toString)
   }
-
-
-  // JSONR[A] reader typeclass from JValue => ValidationNel[Error, A] function
 
   implicit val durationRead = JSON.readL[Int] map (x => new Duration(x))
 
