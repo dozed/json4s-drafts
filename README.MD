@@ -10,14 +10,18 @@ Adds:
     - `JSON[B].xmap[B](f1: A => B, f2: B => A): JSON[B]`
     - `JSON[B].exmap[B](f1: A => Result[B], f2: B => A): JSON[B]`
   - Methods to define `JSON[A]`/`JSONR[A]`/`JSONW[A]`
-    - `JSON.apply[A:JSONW:JSONR]: JSON[A]`                              (`JSON[A]` from instances)
-    - `JSON.json[A](f: JValue => Result[A], g: A => JValue): JSON[A]`   (`JSON[A]` from functions)
+    - `JSON.of[A:JSON](implicit jsonA: JSON[A]): JSON[A]`                (manifest `JSON[A]` from instance)
+    - `JSON.apply[A](f: JValue => Result[A], g: A => JValue): JSON[A]`   (`JSON[A]` from functions)
     - `JSON.read[A](f: JValue => Result[A]): JSONR[A]`     (applicative parsing)
     - `JSON.readE[A](f: JValue => Error \/ A): JSONR[A]`   (monadic parsing)
     - `JSON.readL[A:JSONL]: JSONL[A]`                      (implicit lookup)
     - `JSON.writeL[A:JSONW]: JSONW[A]`
     - `JSON.write(f: A => JValue): JSONW[A]`               (write json)
     - `JSON.writeContext[C, A](f: (C, A) => JValue): JSONW[JSONWContext[C, A]]`   (context-dependent JSON writer)
+  - JSON object codecs with fixed arity
+    - `json2[R, A, B]`
+    - `json3[R, A, B, C]`
+    - `json4[R, A, B, C, D]`
   - `JSON[A]` for shapeless types
     - HList, Coproduct and NewType
     - Labelled Generic HList (fields of a case class, product)
@@ -30,12 +34,22 @@ Adds:
 
 
 
+## Codec for JObject using keys for 1-step traversal and existing `JSON[A]` and `JSON[B]`
+
+```scala
+implicit val localDateJson: JSON[LocalDate] = json3[LocalDate, Int, Int, Int]("year", "month", "day")(
+  (d: LocalDate) => (d.getYear, d.getMonthOfYear, d.getDayOfMonth).some,
+  (year, month, day) => new LocalDate(year, month, day)
+)
+```
+
+
 ## Derive `JSON[B]` from `JSON[A]` with `xmap`
 
 Assuming there is a `JSON[Long]`, one can derive a `JSON[Instant]` straightfowardly with `xmap`:
 
 ```scala
-implicit val instantJson = JSON.apply[Long].xmap[Instant](x => new Instant(x), i => i.getMillis)
+implicit val instantJson = JSON.of[Long].xmap[Instant](x => new Instant(x), i => i.getMillis)
 ```
 
 
