@@ -16,6 +16,7 @@ trait Types extends Base {
   case class UnexpectedJSONError(was: JValue, expected: Class[_ <: JValue]) extends Error
   case class NoSuchFieldError(name: String, json: JValue) extends Error
   case class UncategorizedError(key: String, desc: String, args: List[Any]) extends Error
+  case class InvalidFormatError(desc: String) extends Error
 
   object Fail {
     def apply[A](key: String, desc: String, args: List[Any]): Result[A] =
@@ -29,6 +30,9 @@ trait Types extends Base {
 
     def noSuchField[A](name: String, json: JValue): Result[A] =
       (NoSuchFieldError(name, json):Error).failureNel
+
+    def invalidFormat[A](desc: String): Result[A] =
+      (InvalidFormatError(desc):Error).failureNel
   }
 
   case class JSONWContext[C, A](a: (C, A))
