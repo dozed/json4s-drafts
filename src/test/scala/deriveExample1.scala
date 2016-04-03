@@ -31,7 +31,7 @@ object deriveExample1 extends App {
   implicit def x1: JSON[Localization] = derive[Localization].json
   implicit def x2: JSON[Photo] = derive[Photo].json
 
-  implicit def nonEmptyList[A:JSONW:JSONR]: JSON[NonEmptyList[A]] = JSON[JArray].exmap[NonEmptyList[A]](
+  implicit def nonEmptyList[A:JSONW:JSONR]: JSON[NonEmptyList[A]] = JSON.of[JArray].exmap[NonEmptyList[A]](
     jarr => {
       for {
         xs  <- jarr.children.map(fromJSON[A]).sequence[Result, A]

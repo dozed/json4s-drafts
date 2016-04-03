@@ -12,7 +12,7 @@ object ResolutionPrioritySpecs extends Specification {
 
   object CC2 {
 
-    implicit val ccJSON: JSON[CC2] = JSON[(Int, String)].xmap[CC2](
+    implicit val ccJSON: JSON[CC2] = JSON.of[(Int, String)].xmap[CC2](
       tp => CC2(tp._1, tp._2),
       cc => (cc.i, cc.s)
     )
@@ -81,7 +81,7 @@ object ResolutionPrioritySpecs extends Specification {
 
     import org.json4s.ext.scalaz.JsonScalaz.auto._
 
-    implicit val ccJSON: JSON[CC2] = JSON[(Int, String)].xmap[CC2](
+    implicit val ccJSON: JSON[CC2] = JSON.of[(Int, String)].xmap[CC2](
       tp => CC2(tp._1, tp._2),
       cc => (cc.i, cc.s)
     )

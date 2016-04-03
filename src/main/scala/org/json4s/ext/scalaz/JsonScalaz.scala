@@ -126,14 +126,9 @@ trait Types extends Base {
 
   object JSON {
 
-    def transform(f: JValueTransform): JValueTransform = f
+    def of[A:JSON](implicit jsonA: JSON[A]): JSON[A] = jsonA
 
-    def apply[A:JSONR:JSONW]: JSON[A] = new JSON[A] {
-      override def read(json: JValue): Result[A] = implicitly[JSONR[A]].read(json)
-      override def write(value: A): JValue = implicitly[JSONW[A]].write(value)
-    }
-
-    def json[A](f: JValue => Result[A], g: A => JValue): JSON[A] = new JSON[A] {
+    def apply[A](f: JValue => Result[A], g: A => JValue): JSON[A] = new JSON[A] {
       override def read(json: JValue): Result[A] = f(json)
       override def write(value: A): JValue = g(value)
     }
@@ -155,11 +150,25 @@ trait Types extends Base {
     def writeZero[A]: JSONW[A] = write[A](_ => JNothing)
     def writeContext[C, A](f: (C, A) => JValue): JSONW[JSONWContext[C, A]] = write[JSONWContext[C, A]](ca => f.tupled(ca.a))
 
+    def transform(f: JValueTransform): JValueTransform = f
+
+    implicit def fromJSONRW[A](implicit readA: JSONR[A], writeA: JSONW[A]): JSON[A] = new JSON[A] {
+      override def read(json: JValue): Result[A] = readA.read(json)
+      override def write(value: A): JValue = writeA.write(value)
+    }
+
   }
 
   implicit def Result2JSONR[A](f: JValue => Result[A]): JSONR[A] = new JSONR[A] {
     def read(json: JValue) = f(json)
   }
+
+  implicit def JValue2JSONW[A](f: A => JValue): JSONW[A] = new JSONW[A] {
+    def write(a: A) = f(a)
+  }
+
+  implicit def JSONR2Result[A](f: JSONR[A]): JValue => Result[A] = f.read
+  implicit def JSONW2JValue[A](f: JSONW[A]): A => JValue = f.write
 
   def fromJSON[A: JSONR](json: JValue): Result[A] = implicitly[JSONR[A]].read(json)
   def toJSON[A: JSONW](value: A): JValue = implicitly[JSONW[A]].write(value)

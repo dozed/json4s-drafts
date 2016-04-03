@@ -16,7 +16,7 @@ object JodaTimeExample extends App {
   import org.joda.time.format.ISODateTimeFormat
 
 
-  implicit val instantJson = JSON[Long].xmap[Instant](x => new Instant(x), i => i.getMillis)
+  implicit val instantJson = JSON.of[Long].xmap[Instant](x => new Instant(x), i => i.getMillis)
 
   val dateTimeFormat = {
     ISODateTimeFormat.dateTime.withOffsetParsed

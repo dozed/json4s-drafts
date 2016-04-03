@@ -21,7 +21,7 @@ object DynamicJValue1 extends App {
     implicit val booJson = deriveJSON[Boo]
   }
 
-  implicit val dynamicJValueJson = JSON.json[DynamicJValue](
+  implicit val dynamicJValueJson = JSON[DynamicJValue](
     json => DynamicJValue.dyn(json).successNel,
     _.raw
   )
