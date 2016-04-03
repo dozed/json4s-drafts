@@ -5,7 +5,7 @@ import org.json4s.jackson.{parseJson, prettyJson}
 import scalaz._, Scalaz._
 import shapeless._
 
-object deriveExample1 extends App {
+object DeriveExample1 extends App {
 
   case class Localization(locale: String, title: String, caption: String)
 
