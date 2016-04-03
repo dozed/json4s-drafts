@@ -55,7 +55,7 @@ object ResolutionPrioritySpecs extends Specification {
 
   }
 
-  "A custom conversion can be defined" in {
+  "An instance can be defined explicitely" in {
 
     val json1 = toJSON(value1)
     val readValue1 = fromJSON[CC2](expectedJson1)
