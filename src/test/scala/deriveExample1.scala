@@ -12,26 +12,15 @@ object deriveExample1 extends App {
   case class Photo(id: String, file: String, localizations: NonEmptyList[Localization])
 
 
-  def derive[A](implicit gen: LabelledGeneric[A]) = new {
-    def json[R](implicit writeRepr: JSONW[gen.Repr], readRepr: JSONR[gen.Repr]) = new JSON[A] {
-      override def read(json: JValue): Result[A] = readRepr.read(json) map gen.from
-      override def write(value: A): JValue = writeRepr.write(gen.to(value))
-    }
+  // TODO compiles, but shouldnt
+  //  implicit def localizationJson: JSON[Localization] = JSON.of[Localization]
+  //  implicit def photoJson: JSON[Photo] = JSON.of[Photo]
 
-    def jsonw[R](implicit writeRepr: JSONW[gen.Repr]) = new JSONW[A] {
-      override def write(value: A): JValue = writeRepr.write(gen.to(value))
-    }
-
-    def jsonr[R](implicit readRepr: JSONR[gen.Repr]) = new JSONR[A] {
-      override def read(json: JValue): Result[A] = readRepr.read(json) map gen.from
-    }
-  }
+  implicit def localizationJson: JSON[Localization] = deriveJSON[Localization]
+  implicit def photoJson: JSON[Photo] = deriveJSON[Photo]
 
 
-  implicit def x1: JSON[Localization] = derive[Localization].json
-  implicit def x2: JSON[Photo] = derive[Photo].json
-
-  implicit def nonEmptyList[A:JSONW:JSONR]: JSON[NonEmptyList[A]] = JSON.of[JArray].exmap[NonEmptyList[A]](
+  implicit def nonEmptyList[A:JSON]: JSON[NonEmptyList[A]] = JSON.of[JArray].exmap[NonEmptyList[A]](
     jarr => {
       for {
         xs  <- jarr.children.map(fromJSON[A]).sequence[Result, A]
@@ -42,13 +31,6 @@ object deriveExample1 extends App {
     },
     nel => JArray(nel.list.map(x => toJSON(x)))
   )
-
-  // TODO
-  // - derive a JSON[A] from JSONR[A] and JSONW[A]
-  //  implicit def jsonFromJSONRW[A](implicit readA: JSONR[A], writeA: JSONW[A]): JSON[A] = new JSON[A] {
-  //    override def read(json: JValue): Result[A] = readA.read(json)
-  //    override def write(value: A): JValue = writeA.write(value)
-  //  }
 
   val photo1 = Photo("id", "file", Localization("locale", "title", "caption").wrapNel)
 

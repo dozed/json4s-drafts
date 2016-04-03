@@ -30,6 +30,10 @@ object ResolutionPrioritySpecs extends Specification {
     shapeless.test.illTyped("""toJSON(value0)""")
     shapeless.test.illTyped("""fromJSON[CC](expectedJson0)""")
 
+    // TODO compiles but shouldnt
+    // shapeless.test.illTyped("""implicit def ccJSON: JSON[CC2] = JSON.of[CC2]""")
+    implicit def ccJSON: JSON[CC2] = JSON.of[CC2]
+
     success
 
   }
