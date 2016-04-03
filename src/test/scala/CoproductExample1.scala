@@ -1,9 +1,8 @@
 import org.json4s._
-import org.json4s.jackson.parseJson
+import org.json4s.jackson.{prettyJson, parseJson}
 import org.json4s.ext.scalaz.JsonScalaz._
 
-object coproductReadExample extends App {
-
+object Model {
 
   sealed trait Measure
   case class Gram(value: Double) extends Measure
@@ -13,12 +12,6 @@ object coproductReadExample extends App {
   case class Pieces(value: Double) extends Measure
   case class Milliliter(value: Double) extends Measure
 
-  // TODO should be defineable at another place than the companion object
-  object Measure {
-    implicit def measureJSON = deriveJSONR[Measure]
-  }
-
-
   def gram(value: Double): Measure = Gram(value)
   def teaspoon(value: Double): Measure = Teaspoon(value)
   def tablespoon(value: Double): Measure = Tablespoon(value)
@@ -26,6 +19,14 @@ object coproductReadExample extends App {
   def pieces(value: Double): Measure = Pieces(value)
   def milliliter(value: Double): Measure = Milliliter(value)
 
+}
+
+object CoproductExample1 extends App {
+
+  // coproduct is defined in a different scope due to https://issues.scala-lang.org/browse/SI-7046
+  import Model._
+
+  implicit def measureJSON = deriveJSON[Measure]
 
   val xs: List[Measure] = List(Gram(10.0), Teaspoon(3))
 
@@ -52,6 +53,22 @@ object coproductReadExample extends App {
       |}]
     """.stripMargin
   )
+
+  println(gram(50).toJson)
+  // JObject(List((Gram,JObject(List((value,JDouble(50.0)))))))
+
+  println(prettyJson(gram(50).toJson))
+  //  {
+  //    "Gram" : {
+  //      "value" : 50.0
+  //    }
+  //  }
+
+  println((Gram(50):Measure).toJson)
+  // JObject(List((value,JDouble(50.0))))
+
+  println(gram(50).toJson.read[Measure])
+  // \/-(Gram(50.0))
 
 
   println(jsonOk.read[List[Measure]])

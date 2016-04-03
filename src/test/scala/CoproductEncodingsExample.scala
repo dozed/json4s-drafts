@@ -12,7 +12,7 @@ import std.string._
 import syntax.std.string._
 import syntax.std.option._
 
-object coproductEncodingsExample extends App {
+object CoproductEncodingsExample extends App {
 
   // coproduct encoding
   val json1 = parseJson(
