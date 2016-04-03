@@ -77,14 +77,17 @@ object ResolutionPrioritySpecs extends Specification {
 
   }
 
-  "An instance in implicit scope overrides implicit derivation" in {
+  "An explicit instance in implicit scope overrides implicit derivation" in {
 
+    object Codecs {
+      implicit val ccJSON: JSON[CC2] = JSON.of[(Int, String)].xmap[CC2](
+        tp => CC2(tp._1, tp._2),
+        cc => (cc.i, cc.s)
+      )
+    }
+
+    import Codecs._
     import org.json4s.ext.scalaz.JsonScalaz.auto._
-
-    implicit val ccJSON: JSON[CC2] = JSON.of[(Int, String)].xmap[CC2](
-      tp => CC2(tp._1, tp._2),
-      cc => (cc.i, cc.s)
-    )
 
     val json1 = toJSON(value1)
     val readValue1 = fromJSON[CC2](expectedJson1)
