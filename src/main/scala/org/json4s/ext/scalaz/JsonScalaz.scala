@@ -148,6 +148,7 @@ trait Types extends Base {
     def readE[A](f: JValue => Error \/ A): JSONR[A] = (json: JValue) => f(json).validationNel
 
     // lookup
+    // TODO move to JSONR/JSONW
     def readL[A:JSONR]: JSONR[A] = implicitly[JSONR[A]]
     def writeL[A:JSONW]: JSONW[A] = implicitly[JSONW[A]]
 
@@ -160,7 +161,7 @@ trait Types extends Base {
 
     def transform(f: JValueTransform): JValueTransform = f
 
-    implicit def fromJSONRW[A](implicit readA: JSONR[A], writeA: JSONW[A]): JSON[A] = new JSON[A] {
+    implicit def JSONfromJSONRW[A](implicit readA: JSONR[A], writeA: JSONW[A]): JSON[A] = new JSON[A] {
       override def read(json: JValue): Result[A] = readA.read(json)
       override def write(value: A): JValue = writeA.write(value)
     }
