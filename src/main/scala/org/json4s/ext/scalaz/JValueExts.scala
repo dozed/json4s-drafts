@@ -10,6 +10,8 @@ trait JValueExts {
     def head: JValue = json.children.head
     def tail: JArray = JArray(json.children.tail)
 
+    def size: Int = json.children.size
+
     def map(f: JValue => JValue): JArray = {
       JArray(json.children.map(f))
     }

@@ -17,6 +17,7 @@ trait Types extends Base {
   case class NoSuchFieldError(name: String, json: JValue) extends Error
   case class UncategorizedError(key: String, desc: String, args: List[Any]) extends Error
   case class InvalidFormatError(desc: String) extends Error
+  case object FilterError extends Error
 
   object Fail {
     def apply[A](key: String, desc: String, args: List[Any]): Result[A] =
@@ -47,6 +48,9 @@ trait Types extends Base {
 
   implicit def JValueMonoid: Monoid[JValue] = Monoid.instance(_ ++ _, JNothing)
   implicit def JValueEqual: Equal[JValue] = Equal.equalA
+
+  // flatMap on Validation and \/ requires a zero
+  implicit def ErrorMonoid: Monoid[Error] = Monoid.instance[Error]((e1, e2) => e1, FilterError)
 
   type JValueTransform = JValue => Result[JValue]
 
