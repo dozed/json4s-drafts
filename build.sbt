@@ -30,4 +30,4 @@ libraryDependencies ++= Seq(
 // lazy val json4sScalaz = ProjectRef(uri("git://github.com/json4s/json4s.git"), "json4s-scalaz")
 // lazy val json4sJackson = ProjectRef(uri("git://github.com/json4s/json4s.git"), "json4s-jackson")
 
-lazy val root = project.in(file("."))
+lazy val root = project.in(file(".")).copy(id = "json4s-drafts")
