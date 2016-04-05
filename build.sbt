@@ -14,12 +14,12 @@ resolvers ++= Seq(
 libraryDependencies ++= Seq(
   "org.json4s" %% "json4s-jackson" % "3.3.0",
   "com.chuusai" %% "shapeless" % "2.2.5",
-  "org.scalaz" %% "scalaz-core" % "7.1.7",
+  "org.scalaz" %% "scalaz-core" % "7.2.2",
   "joda-time" % "joda-time" % "2.9.2" % "test",
-  "org.scalaz" %% "scalaz-concurrent" % "7.1.7" % "test",
+  "org.scalaz" %% "scalaz-concurrent" % "7.2.2" % "test",
   "org.scalatra.rl" %% "rl" % "0.4.10" % "test",
   "net.databinder.dispatch" %% "dispatch-core" % "0.11.2" % "test",
-  "org.specs2" %% "specs2-core" % "3.6.6" % "test",
+  "org.specs2" %% "specs2-core" % "3.7.2" % "test",
   "org.scalacheck" %% "scalacheck" % "1.12.5" % "test",
   // "org.http4s" %% "http4s-blaze-client" % "0.12.1" % "test",
   compilerPlugin("org.spire-math" %% "kind-projector" % "0.7.1")

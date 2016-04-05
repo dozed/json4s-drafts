@@ -38,8 +38,15 @@ trait Types extends Base {
 
   case class JSONWContext[C, A](a: (C, A))
 
-  implicit class ValidationExt[A](res: Result[A]) {
+  implicit class ValidationExt[E, A](res: Validation[E, A]) {
     def require: A = res.fold(_ => sys.error("require"), identity)
+
+    /** Bind through the success of this validation. */
+    def flatMap[EE >: E, B](f: A => Validation[EE, B]): Validation[EE, B] =
+      res match {
+        case Success(a) => f(a)
+        case e @ Failure(_) => e
+      }
   }
 
   implicit class EitherExt[A](res: Error \/ A) {

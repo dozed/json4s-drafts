@@ -29,7 +29,7 @@ object DeriveExample1 extends App {
         nel
       }
     },
-    nel => JArray(nel.list.map(x => toJSON(x)))
+    nel => JArray(nel.list.map(x => toJSON(x)).toList)
   )
 
   val photo1 = Photo("id", "file", Localization("locale", "title", "caption").wrapNel)

@@ -44,7 +44,7 @@ object JodaTimeExample2 extends App {
   )
 
   implicit val periodWrite: JSON[Period] = JSON.of[String].exmap[Period](
-    s => Try(Period.parse(s).successNel) getOrElse Fail.invalidFormat(s"Could not parse Period: $s"),
+    s => Try(Period.parse(s).successNel[Error]) getOrElse Fail.invalidFormat(s"Could not parse Period: $s"),
     p => p.toString
   )
 

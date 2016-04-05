@@ -25,7 +25,7 @@ object TupleMaps1 extends App {
         nel
       }
     },
-    nel => JArray(nel.list.map(x => toJSON(x)))
+    nel => JArray(nel.list.map(x => toJSON(x)).toList)
   )
 
 
