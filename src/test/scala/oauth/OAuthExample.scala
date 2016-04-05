@@ -9,10 +9,12 @@ object OAuthExample extends App  {
 
   val redirectUri = "http://local.mindool.com/oauth2callback"
 
-  val fb = OAuthEndpoint("facebook", List("email"), "https://www.facebook.com/dialog/oauth", "https://graph.facebook.com/oauth/access_token")
-  val fbCreds = OAuthCredentials(???, ???)
+  // facebook uses a proprietary oauth 2.0 authentication extension
+  def fb = OAuthEndpoint("facebook", List("email", "public_profile"), "https://www.facebook.com/dialog/oauth", "https://graph.facebook.com/oauth/access_token")
+  def fbCreds = OAuthCredentials(???, ???)
 
-  val google = OAuthEndpoint("google", List("email"), "https://accounts.google.com/o/oauth2/auth", "https://www.googleapis.com/oauth2/v3/token")
+  // openid authentication https://accounts.google.com/.well-known/openid-configuration
+  val google = OAuthEndpoint("google", List("email", "profile"), "https://accounts.google.com/o/oauth2/v2/auth", "https://www.googleapis.com/oauth2/v4/token")
   val googleCreds = OAuthCredentials(???, ???)
 
   val res1 = (for {

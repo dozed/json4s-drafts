@@ -34,18 +34,20 @@ object OAuthApis {
 
   def lookupProfileApi(s: String) = s match {
     case "facebook" => "https://graph.facebook.com/me"
-    case "google" =>  "https://www.googleapis.com/oauth2/v2/userinfo"
+    case "google" =>  "https://www.googleapis.com/oauth2/v3/userinfo"
   }
 
+  // person's profile in OpenID Connect format
+  // https://developers.google.com/+/web/api/rest/openidconnect/getOpenIdConnect#request
   val readGoogleUser = JSON.readE[UserProfile] { jv =>
     for {
-      id <- (jv \ "id").read[String]
+      id <- (jv \ "sub").read[String]
       email <- (jv \ "email").read[String]
-      verifiedEmail <- (jv \ "verified_email").read[Boolean]
+      verifiedEmail <- (jv \ "email_verified").read[Boolean]
       name <- (jv \ "name").read[String]
       givenName <- (jv \ "given_name").read[String]
       familyName <- (jv \ "family_name").read[String]
-      link <- (jv \ "link").read[String]
+      link <- (jv \ "profile").read[String]
       picture <- (jv \ "picture").read[String]
       gender <- (jv \ "gender").read[String]
     } yield {
@@ -71,6 +73,8 @@ object OAuthApis {
   def fetchUserProfile(endpoint: OAuthEndpoint, accessToken: AccessToken): Task[ErrorCode \/ UserProfile] = {
     val apiEndpoint = lookupProfileApi(endpoint.key)
     val reader = lookupProfileReader(endpoint.key)
+
+    println(s"requesting: $apiEndpoint")
 
     TaskC.toTask {
       val h = Map("Authorization" -> f"Bearer ${accessToken.value}")
