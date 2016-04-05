@@ -74,12 +74,9 @@ object OAuthApis {
     val apiEndpoint = lookupProfileApi(endpoint.key)
     val reader = lookupProfileReader(endpoint.key)
 
-    println(s"requesting: $apiEndpoint")
-
     TaskC.toTask {
       val h = Map("Authorization" -> f"Bearer ${accessToken.value}")
       Http(url(apiEndpoint) <:< h OK as.String).map { data =>
-        println(data)
         parseJson(data).read[UserProfile](reader) leftAs (ErrorCode.ParseError:ErrorCode)
       }
     }

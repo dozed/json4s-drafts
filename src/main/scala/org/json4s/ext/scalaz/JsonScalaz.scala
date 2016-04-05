@@ -1,6 +1,7 @@
 package org.json4s.ext.scalaz
 
 import org.json4s._
+import org.json4s.jackson.parseJsonOpt
 
 import scalaz._
 import std.option._
@@ -171,6 +172,15 @@ trait Types extends Base {
     implicit def JSONfromJSONRW[A](implicit readA: JSONR[A], writeA: JSONW[A]): JSON[A] = new JSON[A] {
       override def read(json: JValue): Result[A] = readA.read(json)
       override def write(value: A): JValue = writeA.write(value)
+    }
+
+    def parse(text: String): Option[JValue] = parseJsonOpt(text)
+    def parseAsE[A:JSONR](text: String): Error \/ A = parseAs[A](text).disjunction.leftMap(_.head)
+    def parseAs[A:JSONR](text: String): Result[A] = {
+      parseJsonOpt(text) match {
+        case Some(json) => json.validate[A]
+        case _ => Fail("unexpected", "unexpected")
+      }
     }
 
   }

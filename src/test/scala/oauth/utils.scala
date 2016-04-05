@@ -8,7 +8,7 @@ import scala.util.Try
 
 import dispatch._, Defaults._
 
-object Encoding {
+object UrlEncoding {
 
   def formEncodedStringToMap(s: String): Map[String, String] = Try {
     s.split("&").toList flatMap { s =>

@@ -25,19 +25,19 @@ object OAuth extends OAuthTypes with OAuthJSONR with OAuthRequestParser {
 
   }
 
-  def authorizationRequestUrl(endpoint: OAuthEndpoint, credentials: OAuthCredentials, redirectUri: String, state: Map[String, String]): AuthorizationRequestUrl = {
+  def authorizationRequestUrl(endpoint: OAuthEndpoint, credentials: OAuthCredentials, redirectUri: String, state: String): AuthorizationRequestUrl = {
     val queryParams = Map(
       "client_id" -> credentials.clientId,
       "response_type" -> "code",
       "scope" -> endpoint.scopes.mkString(" "),
       "redirect_uri" -> redirectUri,
-      "state" -> Encoding.encodeMap(state))
+      "state" -> state)
 
-    s"${endpoint.authorizationUri}?${Encoding.encodeMap(queryParams)}"
+    s"${endpoint.authorizationUri}?${UrlEncoding.encodeMap(queryParams)}"
   }
 
   def authenticateUser(endpoint: OAuthEndpoint, credentials: OAuthCredentials, redirectUri: String): Task[ErrorCode \/ TokenResponse] = {
-    val req1Url = authorizationRequestUrl(endpoint, credentials, redirectUri, Map("action" -> "login", "provider" -> endpoint.key))
+    val req1Url = authorizationRequestUrl(endpoint, credentials, redirectUri, UrlEncoding.encodeMap(Map("action" -> "login", "provider" -> endpoint.key)))
 
     println(req1Url)
     println("Enter code:")
@@ -145,7 +145,7 @@ trait OAuthRequestParser extends OAuthTypes with OAuthJSONR {
   // facebook api returns response as application/x-www-form-urlencoded
   // access_token=...&expires=...
   def parseFormEncodedToken(str: String): ErrorCode \/ TokenResponse = {
-    val params = Encoding.formEncodedStringToMap(str)
+    val params = UrlEncoding.formEncodedStringToMap(str)
 
     if (params.isDefinedAt("access_token")) {
       val token = params("access_token")
