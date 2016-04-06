@@ -1,5 +1,7 @@
 package oauth
 
+import org.json4s.ext.scalaz.JsonScalaz._
+
 import scalaz._, Scalaz._
 
 object OAuthExample extends App  {
@@ -9,6 +11,12 @@ object OAuthExample extends App  {
 
   val redirectUri = "http://local.mindool.com/oauth2callback"
 
+  sealed trait DeferredAction
+  case object Login extends DeferredAction
+  case class Create(text: String) extends DeferredAction
+
+  case class OAuthState(action: DeferredAction, endpoint: String)
+
   // facebook uses a proprietary oauth 2.0 authentication extension
   def fb = OAuthEndpoint("facebook", List("email", "public_profile"), "https://www.facebook.com/dialog/oauth", "https://graph.facebook.com/oauth/access_token")
   def fbCreds = OAuthCredentials(???, ???)
@@ -17,19 +25,21 @@ object OAuthExample extends App  {
   val google = OAuthEndpoint("google", List("email", "profile"), "https://accounts.google.com/o/oauth2/v2/auth", "https://www.googleapis.com/oauth2/v4/token")
   val googleCreds = OAuthCredentials(???, ???)
 
+
+  implicit val stateJson = deriveJSON[OAuthState]
+
   val res1 = (for {
-    token <- EitherT(authenticateUser(google, googleCreds, redirectUri))
+    token <- EitherT(authenticateUser(google, googleCreds, redirectUri, OAuthState(Login, "google").toJson.nospaces))
     user <- EitherT(OAuthApis.fetchUserProfile(google, token.accessToken))
   } yield user).run.run
 
   println(res1)
 
   val res2 = (for {
-    token <- EitherT(authenticateUser(fb, fbCreds, redirectUri))
+    token <- EitherT(authenticateUser(fb, fbCreds, redirectUri, OAuthState(Create("foo title"), "facebook").toJson.nospaces))
     user <- EitherT(OAuthApis.fetchUserProfile(fb, token.accessToken))
   } yield user).run.run
 
   println(res2)
-
 
 }

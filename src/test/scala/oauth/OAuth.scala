@@ -36,8 +36,8 @@ object OAuth extends OAuthTypes with OAuthJSONR with OAuthRequestParser {
     s"${endpoint.authorizationUri}?${UrlEncoding.encodeMap(queryParams)}"
   }
 
-  def authenticateUser(endpoint: OAuthEndpoint, credentials: OAuthCredentials, redirectUri: String): Task[ErrorCode \/ TokenResponse] = {
-    val req1Url = authorizationRequestUrl(endpoint, credentials, redirectUri, UrlEncoding.encodeMap(Map("action" -> "login", "provider" -> endpoint.key)))
+  def authenticateUser(endpoint: OAuthEndpoint, credentials: OAuthCredentials, redirectUri: String, state: String): Task[ErrorCode \/ TokenResponse] = {
+    val req1Url = authorizationRequestUrl(endpoint, credentials, redirectUri, state)
 
     println(req1Url)
     println("Enter code:")
