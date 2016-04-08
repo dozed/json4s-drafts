@@ -4,6 +4,10 @@ import org.json4s.ext.scalaz.JsonScalaz._
 
 import scalaz._, Scalaz._
 
+sealed trait DeferredAction
+case object Login extends DeferredAction
+case class Create(text: String) extends DeferredAction
+
 object OAuthExample extends App  {
 
   import OAuth._
@@ -11,9 +15,6 @@ object OAuthExample extends App  {
 
   val redirectUri = "http://local.mindool.com/oauth2callback"
 
-  sealed trait DeferredAction
-  case object Login extends DeferredAction
-  case class Create(text: String) extends DeferredAction
 
   case class OAuthState(action: DeferredAction, endpoint: String)
 
@@ -24,6 +25,7 @@ object OAuthExample extends App  {
   val googleCreds = OAuthCredentials(???, ???)
 
 
+  implicit val deferredActionJson = deriveJSON[DeferredAction]
   implicit val stateJson = deriveJSON[OAuthState]
 
   val res1 = (for {
