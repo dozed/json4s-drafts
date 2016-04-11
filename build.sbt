@@ -25,6 +25,7 @@ libraryDependencies ++= Seq(
   compilerPlugin("org.spire-math" %% "kind-projector" % "0.7.1")
 )
 
+exportJars := true
 
 // throws a java.lang.IllegalArgumentException: URI scheme is not "file"
 // lazy val json4sScalaz = ProjectRef(uri("git://github.com/json4s/json4s.git"), "json4s-scalaz")
