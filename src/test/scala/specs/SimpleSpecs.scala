@@ -15,7 +15,7 @@ object SimpleSpecs extends Specification {
 
   implicit val withDefaultEquals = Equal.equalA[WithDefaults]
 
-  val withDefaultsJSON = deriveJSON[WithDefaults]
+  val withDefaultsJSON = JSON.derive[WithDefaults]
 
   "Simple specs" in {
 

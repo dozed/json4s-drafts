@@ -31,11 +31,11 @@ object ReadAutoExample2 extends App {
 
   // import org.json4s.ext.scalaz.JsonScalaz.auto._
 
-  implicit def queryParamJSON = deriveJSON[QueryParam]
-  implicit def cookieJSON     = deriveJSON[Cookie]
-  implicit def requestJSON    = deriveJSON[Request]
-  implicit def responseJSON   = deriveJSON[Response]
-  implicit def entryJSON      = deriveJSON[Entry]
+  implicit def queryParamJSON = JSON.derive[QueryParam]
+  implicit def cookieJSON     = JSON.derive[Cookie]
+  implicit def requestJSON    = JSON.derive[Request]
+  implicit def responseJSON   = JSON.derive[Response]
+  implicit def entryJSON      = JSON.derive[Entry]
 
   val json: JValue = ??? // entry.toJson
   val res = json.read[Entry]

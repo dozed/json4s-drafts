@@ -21,8 +21,8 @@ object ReadExample3 extends App {
   case class A(x: Int)
   case class Foo(i: Int, s: String, x: List[String], a: A)
 
-  implicit val aJSON = deriveJSON[A]
-  implicit val fooJSON = deriveJSON[Foo]
+  implicit val aJSON = JSON.derive[A]
+  implicit val fooJSON = JSON.derive[Foo]
 
   val foo = Foo(0, "foo", List("foo", "bar"), A(200))
 

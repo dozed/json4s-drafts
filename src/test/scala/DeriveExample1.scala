@@ -16,8 +16,8 @@ object DeriveExample1 extends App {
   //  implicit def localizationJson: JSON[Localization] = JSON.of[Localization]
   //  implicit def photoJson: JSON[Photo] = JSON.of[Photo]
 
-  implicit def localizationJson: JSON[Localization] = deriveJSON[Localization]
-  implicit def photoJson: JSON[Photo] = deriveJSON[Photo]
+  implicit def localizationJson: JSON[Localization] = JSON.derive[Localization]
+  implicit def photoJson: JSON[Photo] = JSON.derive[Photo]
 
 
   implicit def nonEmptyList[A:JSON]: JSON[NonEmptyList[A]] = JSON.of[JArray].exmap[NonEmptyList[A]](

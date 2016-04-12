@@ -125,7 +125,7 @@ object JodaTimeExample1 extends App {
     localTime: LocalTime
   )
 
-  implicit val datesJson = deriveJSON[Dates]
+  implicit val datesJson = JSON.derive[Dates]
 
 
   val testJson2 =

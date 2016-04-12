@@ -40,13 +40,9 @@ object ReadAutoExample extends App {
   case class Item(label: String, amount: Int, price: Double)
   case class Order(orderId: String, contact: Contact, items: List[Item])
 
-  object Codecs {
-    implicit val itemJSON = deriveJSON[Item]
-    implicit val contactJSON = deriveJSON[Contact]
-    implicit val orderJSON = deriveJSON[Order]
-  }
-
-  import Codecs._
+  implicit val itemJSON = JSON.derive[Item]
+  implicit val contactJSON = JSON.derive[Contact]
+  implicit val orderJSON = JSON.derive[Order]
 
 
   println(orderJson.validate[Order])

@@ -21,6 +21,16 @@ trait JsonShapeless { self: Types =>
   }
 
 
+  implicit class JSONExt(json: JSON.type) {
+
+    def deriveJSONR[A](implicit readA: Thing[JSONR[A]]): JSONR[A] = readA.value
+    def deriveJSONW[A](implicit writeA: Thing[JSONW[A]]): JSONW[A] = writeA.value
+    def derive[A](implicit readA: Thing[JSONR[A]], writeA: Thing[JSONW[A]]): JSON[A] = new JSON[A] {
+      override def write(value: A): JValue = writeA.value.write(value)
+      override def read(json: JValue): Result[A] = readA.value.read(json)
+    }
+
+  }
 
 
   // JSONW for

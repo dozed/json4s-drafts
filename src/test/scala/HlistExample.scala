@@ -29,7 +29,7 @@ object HlistExample extends App {
 
   case class Foo(x: Int)
 
-  implicit val fooJSON = deriveJSON[Foo]
+  implicit val fooJSON = JSON.derive[Foo]
 
   ("hey" :: Foo(42) :: HNil).toJson.read[String :: Foo :: HNil]
 

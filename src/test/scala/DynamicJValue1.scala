@@ -18,7 +18,7 @@ object DynamicJValue1 extends App {
   case class Boo(s: String, i: Int, dyn: DynamicJValue)
 
   object Boo {
-    implicit val booJson = deriveJSON[Boo]
+    implicit val booJson = JSON.derive[Boo]
   }
 
   implicit val dynamicJValueJson = JSON[DynamicJValue](

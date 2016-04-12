@@ -26,7 +26,7 @@ object CoproductExample1 extends App {
   // coproduct is defined in a different scope due to https://issues.scala-lang.org/browse/SI-7046
   import Model._
 
-  implicit def measureJSON = deriveJSON[Measure]
+  implicit def measureJSON = JSON.derive[Measure]
 
   val xs: List[Measure] = List(Gram(10.0), Teaspoon(3))
 

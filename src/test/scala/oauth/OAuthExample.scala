@@ -25,8 +25,8 @@ object OAuthExample extends App  {
   val googleCreds = OAuthCredentials(???, ???)
 
 
-  implicit val deferredActionJson = deriveJSON[DeferredAction]
-  implicit val stateJson = deriveJSON[OAuthState]
+  implicit val deferredActionJson = JSON.derive[DeferredAction]
+  implicit val stateJson = JSON.derive[OAuthState]
 
   val res1 = (for {
     token <- EitherT(authenticateUser(google, googleCreds, redirectUri, OAuthState(Login, "google").toJson.nospaces))
