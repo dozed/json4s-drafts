@@ -50,7 +50,7 @@ trait Types extends Base {
       }
   }
 
-  implicit class EitherExt[A](res: Error \/ A) {
+  implicit class EitherExt[E, A](res: E \/ A) {
     def require: A = res.fold(_ => sys.error("require"), identity)
   }
 
