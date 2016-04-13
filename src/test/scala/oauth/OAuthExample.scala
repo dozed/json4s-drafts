@@ -13,7 +13,7 @@ object OAuthExample extends App  {
   import OAuth._
   import OAuthApis._
 
-  val redirectUri = "http://local.mindool.com/oauth2callback"
+  val redirectUri = "http://local.example.com/oauth2callback"
 
 
   case class OAuthState(action: DeferredAction, endpoint: String)

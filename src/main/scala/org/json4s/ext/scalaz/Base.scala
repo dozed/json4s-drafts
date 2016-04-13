@@ -83,15 +83,21 @@ trait Base { this: Types =>
     case json => Fail.unexpected(json, classOf[JArray])
   }
 
-  implicit def listJSONR[A: JSONR]: JSONR[List[A]] = new JSONR[List[A]] {
-    def read(json: JValue) = json match {
-      case JArray(xs) => 
-        xs.map(fromJSON[A]).sequence[({type λ[t] = ValidationNel[Error, t]})#λ, A]
-      case x => Fail.unexpected(x, classOf[JArray])
+  implicit def traversableJSONR[F[_], A:JSONR](implicit cbf: scala.collection.generic.CanBuildFrom[F[_], A, F[A]]) =
+    new JSONR[F[A]] {
+      def read(value: _root_.org.json4s.JValue): Result[F[A]] = {
+        fromJSON[JArray](value) flatMap { jarray =>
+          jarray.children.map(fromJSON[A]).sequence[Result[?], A] map { xs =>
+            cbf().++=(xs).result()
+          }
+        }
+      }
     }
-  }
-  implicit def listJSONW[A: JSONW]: JSONW[List[A]] = new JSONW[List[A]] {
-    def write(values: List[A]) = JArray(values.map(x => toJSON(x)))
+
+  implicit def traversableJSONW[F[A]<:TraversableOnce[A], A:JSONW] = new JSONW[F[A]] {
+    def write(values: F[A]) = {
+      JArray(values.map(x => toJSON(x)).toList)
+    }
   }
 
   implicit def optionJSONR[A: JSONR]: JSONR[Option[A]] = new JSONR[Option[A]] {
