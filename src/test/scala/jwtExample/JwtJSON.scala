@@ -13,8 +13,8 @@ object JwtJSON {
   import JwtTypes._
 
   implicit lazy val readAud =
-    JSON.readL[List[String]].map(x => Claim.Aud(stringOrList(x))) orElse
-      JSON.readL[String].map(x => Claim.Aud(stringOrList(x)))
+    JSONR[List[String]].map(x => Claim.Aud(stringOrList(x))) orElse
+      JSONR[String].map(x => Claim.Aud(stringOrList(x)))
 
   val readClaim: (String, JValue) => Result[Claim] = {
     case ("iss", v) => v.validateC[Claim.Iss, Claim]
@@ -47,7 +47,7 @@ object JwtJSON {
     JObject(xs map writeClaim)
   }
 
-  implicit lazy val algorithmRead: JSONR[Algorithm] = JSON.readL[String].map(_.toUpperCase).emap {
+  implicit lazy val algorithmRead: JSONR[Algorithm] = JSONR[String].map(_.toUpperCase).emap {
     case "HS256" => Algorithm.HS256.successNel
     case "HS384" => Algorithm.HS384.successNel
     case "HS512" => Algorithm.HS512.successNel
@@ -55,7 +55,7 @@ object JwtJSON {
     case x => Fail.apply("", "one of: HS256, HS384, HS512, NONE", List(x))
   }
 
-  implicit lazy val algorithmWrite: JSONW[Algorithm] = JSON.writeL[String].contramap[Algorithm] {
+  implicit lazy val algorithmWrite: JSONW[Algorithm] = JSONW[String].contramap[Algorithm] {
     case Algorithm.HS256 => "HS256"
     case Algorithm.HS384 => "HS384"
     case Algorithm.HS512 => "HS512"

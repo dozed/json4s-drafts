@@ -72,7 +72,14 @@ trait Types extends Base {
 
   trait JSON[A] extends JSONR[A] with JSONW[A]
 
+
+
+  // Monad[JSONR]
+  // Contravariant[JSONW]
+  // xmap, emap, exmap, orelse
+
   implicit val jsonrMonad = new Monad[JSONR] {
+
     override def map[A, B](fa: JSONR[A])(f: (A) => B): JSONR[B] = new JSONR[B] {
       override def read(json: JValue): Result[B] = {
         fa.read(json) map f
@@ -91,14 +98,17 @@ trait Types extends Base {
         }
       }
     }
+
   }
 
   implicit val jsonwContravariant = new Contravariant[JSONW] {
+
     override def contramap[A, B](r: JSONW[A])(f: (B) => A): JSONW[B] = new JSONW[B] {
       override def write(value: B): JValue = {
         r.write(f(value))
       }
     }
+
   }
 
   implicit class JSONRExt[A](fa: JSONR[A]) {
@@ -118,10 +128,6 @@ trait Types extends Base {
       }
     }
 
-    def |[B >: A](fa2: JSONR[B]): JSONR[B] = orElse(fa2)
-
-    def readE1(json: JValue): Error \/ A = fa.read(json).disjunction.leftMap(_.head)
-
   }
 
   implicit class JSONExt[A](fa: JSON[A]) {
@@ -140,6 +146,18 @@ trait Types extends Base {
 
   }
 
+  object JSONW {
+
+    def apply[A:JSONW]: JSONW[A] = implicitly[JSONW[A]]
+
+  }
+
+  object JSONR {
+
+    def apply[A:JSONR]: JSONR[A] = implicitly[JSONR[A]]
+
+  }
+
   object JSON {
 
     def of[A:JSON](implicit jsonA: JSON[A]): JSON[A] = jsonA
@@ -154,11 +172,6 @@ trait Types extends Base {
 
     // either
     def readE[A](f: JValue => Error \/ A): JSONR[A] = (json: JValue) => f(json).validationNel
-
-    // lookup
-    // TODO move to JSONR/JSONW
-    def readL[A:JSONR]: JSONR[A] = implicitly[JSONR[A]]
-    def writeL[A:JSONW]: JSONW[A] = implicitly[JSONW[A]]
 
     def write[A](f: A => JValue): JSONW[A] = new JSONW[A] {
       override def write(a: A): JValue = f(a)

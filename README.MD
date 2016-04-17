@@ -14,10 +14,10 @@ Adds:
     - `JSON.apply[A](f: JValue => Result[A], g: A => JValue): JSON[A]`   (`JSON[A]` from functions)
     - `JSON.read[A](f: JValue => Result[A]): JSONR[A]`     (applicative parsing)
     - `JSON.readE[A](f: JValue => Error \/ A): JSONR[A]`   (monadic parsing)
-    - `JSON.readL[A:JSONL]: JSONL[A]`                      (implicit lookup)
-    - `JSON.writeL[A:JSONW]: JSONW[A]`
     - `JSON.write(f: A => JValue): JSONW[A]`               (write json)
     - `JSON.writeContext[C, A](f: (C, A) => JValue): JSONW[JSONWContext[C, A]]`   (context-dependent JSON writer)
+    - `JSONR.apply[A:JSONL]: JSONL[A]`                      (implicit lookup)
+    - `JSONW.apply[A:JSONW]: JSONW[A]`
   - JSON object codecs with fixed arity
     - `json2[R, A, B]`
     - `json3[R, A, B, C]`
@@ -108,7 +108,7 @@ object Algorithm {
 }
 
 // JSONW[String] + (Algorithm => String) => JSONW[Algorithm] 
-implicit val algorithmWrite = JSON.writeL[String].contramap[Algorithm] {
+implicit val algorithmWrite = JSONW[String].contramap[Algorithm] {
   case Algorithm.HS256 => "HS256"
   case Algorithm.HS384 => "HS384"
   case Algorithm.HS512 => "HS512"
@@ -128,7 +128,7 @@ Methods to define a JSON reader
 
   - `read[A](f: JValue => Result[A]): JSONR[A]`
   - `readE[A](f: JValue => Error \/ A): JSONR[A]`
-  - `readL[A]: JSONR[A]`
+  - `JSONR.apply[A]: JSONR[A]`
 
 
 ### Applicative parsing with `Validation`
@@ -175,15 +175,15 @@ implicit val itemRead: JSONR[Item] = JSON.readE[Item]({ json =>
 ### JSONR is a Functor
 
 ```scala
-implicit val durationRead: JSONR[Duration] = JSON.readL[Int] map (x => new Duration(x))
-implicit val instantRead: JSONR[Instant] = JSON.readL[Int] map (x => new Instant(x))
+implicit val durationRead: JSONR[Duration] = JSONR[Int] map (x => new Duration(x))
+implicit val instantRead: JSONR[Instant] = JSONR[Int] map (x => new Instant(x))
 ```
 
 
 ### emap
 
 ```scala
-implicit val algorithmRead: JSONR[Algorithm] = JSON.readL[String].map(_.toUpperCase).emap {
+implicit val algorithmRead: JSONR[Algorithm] = JSONR[String].map(_.toUpperCase).emap {
   case "HS256" => Algorithm.HS256.successNel
   case "HS384" => Algorithm.HS384.successNel
   case "HS512" => Algorithm.HS512.successNel

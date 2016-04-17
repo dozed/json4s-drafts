@@ -124,7 +124,9 @@ trait OAuthJSONR extends OAuthTypes {
       ((json \ "error").validate[String] |@| (json \ "error_description").validate[String]) (ErrorCode.TokenResponseError)
     }
 
-    (facebookError | googleError).read(json)
+    val r: JSONR[ErrorCode.TokenResponseError] = (facebookError orElse googleError)
+
+    r.read(json)
 
   }
 

@@ -93,8 +93,8 @@ trait JwtOperations {
 trait JwtJSONInstances {
 
   implicit lazy val readAud =
-    JSON.readL[List[String]].map(x => Claim.Aud(stringOrList(x))) orElse
-      JSON.readL[String].map(x => Claim.Aud(stringOrList(x)))
+    JSONR[List[String]].map(x => Claim.Aud(stringOrList(x))) orElse
+      JSONR[String].map(x => Claim.Aud(stringOrList(x)))
 
   val readClaim: (String, JValue) => Result[Claim] = {
     case ("iss", v) => v.validate[String].map(Claim.Iss)

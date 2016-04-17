@@ -12,7 +12,7 @@ object WriteExample2 extends App {
     case object NONE extends Algorithm
   }
 
-  implicit val algorithmWrite = JSON.writeL[String].contramap[Algorithm] {
+  implicit val algorithmWrite = JSONW[String].contramap[Algorithm] {
     case Algorithm.HS256 => "HS256"
     case Algorithm.HS384 => "HS384"
     case Algorithm.HS512 => "HS512"
@@ -25,7 +25,7 @@ object WriteExample2 extends App {
 
 
 
-  implicit val algorithmRead: JSONR[Algorithm] = JSON.readL[String].map(_.toUpperCase).emap {
+  implicit val algorithmRead: JSONR[Algorithm] = JSONR[String].map(_.toUpperCase).emap {
     case "HS256" => Algorithm.HS256.successNel
     case "HS384" => Algorithm.HS384.successNel
     case "HS512" => Algorithm.HS512.successNel

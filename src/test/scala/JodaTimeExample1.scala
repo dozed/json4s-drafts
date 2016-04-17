@@ -52,7 +52,7 @@ object JodaTimeExample1 extends App {
     JString(p.toString)
   }
 
-  implicit val durationRead = JSON.readL[Int] map (x => new Duration(x))
+  implicit val durationRead = JSONR[Int] map (x => new Duration(x))
 
   implicit val intervalRead = JSON.read[Interval] { json =>
     (
