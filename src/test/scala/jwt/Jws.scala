@@ -185,12 +185,12 @@ trait JwsJSONInstances {
     case Header.Alg(x) => ("alg", x.toJson)
   }
 
-  implicit lazy val headersRead: JSONR[List[Header]] = JSON.read[List[Header]] {
+  implicit lazy val headersRead: JSONR[List[Header]] = JSONR.instance[List[Header]] {
     case x: JObject => x.obj.map(x => readHeader.tupled(x)).sequence[Result, Header]
     case json => Fail.unexpected(json, classOf[JObject])
   }
 
-  implicit lazy val headersWrite: JSONW[List[Header]] = JSON.write[List[Header]] { xs =>
+  implicit lazy val headersWrite: JSONW[List[Header]] = JSONW.instance[List[Header]] { xs =>
     JObject(xs map writeHeader)
   }
 

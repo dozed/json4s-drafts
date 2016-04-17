@@ -119,12 +119,12 @@ trait JwtJSONInstances {
       parseJsonOpt(value).fold((key, value.toJson))(json => (key, json))
   }
 
-  implicit lazy val claimsRead: JSONR[List[Claim]] = JSON.read[List[Claim]] {
+  implicit lazy val claimsRead: JSONR[List[Claim]] = JSONR.instance[List[Claim]] {
     case x: JObject => x.obj.map(x => readClaim.tupled(x)).sequence[Result, Claim]
     case json => Fail.unexpected(json, classOf[JObject])
   }
 
-  implicit lazy val claimsWrite: JSONW[List[Claim]] = JSON.write[List[Claim]] { xs =>
+  implicit lazy val claimsWrite: JSONW[List[Claim]] = JSONW.instance[List[Claim]] { xs =>
     JObject(xs map writeClaim)
   }
 

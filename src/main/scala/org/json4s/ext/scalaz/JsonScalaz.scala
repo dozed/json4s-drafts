@@ -150,11 +150,20 @@ trait Types extends Base {
 
     def apply[A:JSONW]: JSONW[A] = implicitly[JSONW[A]]
 
+    def instance[A](f: A => JValue): JSONW[A] = f
+
+    def withContext[C, A](f: (C, A) => JValue): JSONW[JSONWContext[C, A]] = instance[JSONWContext[C, A]](ca => f.tupled(ca.a))
+
   }
+
 
   object JSONR {
 
     def apply[A:JSONR]: JSONR[A] = implicitly[JSONR[A]]
+
+    def instance[A](f: JValue => Result[A]): JSONR[A] = f
+
+    def instanceE[A](f: JValue => Error \/ A): JSONR[A] = (json: JValue) => f(json).validationNel
 
   }
 
@@ -166,19 +175,6 @@ trait Types extends Base {
       override def read(json: JValue): Result[A] = f(json)
       override def write(value: A): JValue = g(value)
     }
-
-    // validation
-    def read[A](f: JValue => Result[A]): JSONR[A] = f
-
-    // either
-    def readE[A](f: JValue => Error \/ A): JSONR[A] = (json: JValue) => f(json).validationNel
-
-    def write[A](f: A => JValue): JSONW[A] = new JSONW[A] {
-      override def write(a: A): JValue = f(a)
-    }
-
-    def writeZero[A]: JSONW[A] = write[A](_ => JNothing)
-    def writeContext[C, A](f: (C, A) => JValue): JSONW[JSONWContext[C, A]] = write[JSONWContext[C, A]](ca => f.tupled(ca.a))
 
     def transform(f: JValueTransform): JValueTransform = f
 

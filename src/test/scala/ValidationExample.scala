@@ -40,7 +40,7 @@ object ValidationExample extends App {
 
 
 
-  implicit val phoneNumberRead = JSON.read[PhoneNumber] { json =>
+  implicit val phoneNumberRead = JSONR.instance[PhoneNumber] { json =>
     json.validate[String] flatMap { s =>
 
       isInternational(s).ap(phoneNumberWhitelist(s).map(x => identity[String] _)).map(PhoneNumber)

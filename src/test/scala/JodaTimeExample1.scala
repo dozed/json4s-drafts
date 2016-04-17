@@ -22,39 +22,39 @@ object JodaTimeExample1 extends App {
 
   val dateTimeFormat = ISODateTimeFormat.dateTime.withOffsetParsed
 
-  implicit val durationWrite = JSON.write[Duration] { d =>
+  implicit val durationWrite = JSONW.instance[Duration] { d =>
     JInt(d.getMillis)
   }
 
-  implicit val dateTimeWrite = JSON.write[DateTime] { d =>
+  implicit val dateTimeWrite = JSONW.instance[DateTime] { d =>
     JString(dateTimeFormat.print(d))
   }
 
-  implicit val intervalWrite = JSON.write[Interval] { i =>
+  implicit val intervalWrite = JSONW.instance[Interval] { i =>
     ("start" -> i.getStartMillis) ~
       ("end" -> i.getEndMillis)
   }
 
-  implicit val localDateWrite = JSON.write[LocalDate] { d =>
+  implicit val localDateWrite = JSONW.instance[LocalDate] { d =>
     ("year" -> d.getYear) ~
       ("month" -> d.getMonthOfYear) ~
       ("day" -> d.getDayOfMonth)
   }
 
-  implicit val localTimeWrite = JSON.write[LocalTime] { t =>
+  implicit val localTimeWrite = JSONW.instance[LocalTime] { t =>
     ("hour" -> t.getHourOfDay) ~
       ("minute" -> t.getMinuteOfHour) ~
       ("second" -> t.getSecondOfMinute) ~
       ("millis" -> t.getMillisOfSecond)
   }
 
-  implicit val periodWrite = JSON.write[Period] { p =>
+  implicit val periodWrite = JSONW.instance[Period] { p =>
     JString(p.toString)
   }
 
   implicit val durationRead = JSONR[Int] map (x => new Duration(x))
 
-  implicit val intervalRead = JSON.read[Interval] { json =>
+  implicit val intervalRead = JSONR.instance[Interval] { json =>
     (
       (json \ "start").validate[Long] |@|
       (json \ "end").validate[Long]
@@ -63,7 +63,7 @@ object JodaTimeExample1 extends App {
     }
   }
 
-  implicit val dateTimeRead = JSON.read[DateTime] { json =>
+  implicit val dateTimeRead = JSONR.instance[DateTime] { json =>
     json.validate[String] flatMap  { str =>
       try  {
         dateTimeFormat.parseDateTime(str).successNel[Error]
@@ -73,7 +73,7 @@ object JodaTimeExample1 extends App {
     }
   }
 
-  implicit val localDateRead = JSON.read[LocalDate] { json =>
+  implicit val localDateRead = JSONR.instance[LocalDate] { json =>
     (
       (json \ "year").validate[Int] |@|
       (json \ "month").validate[Int] |@|
@@ -83,7 +83,7 @@ object JodaTimeExample1 extends App {
     }
   }
 
-  implicit val localTimeRead = JSON.read[LocalTime] { json =>
+  implicit val localTimeRead = JSONR.instance[LocalTime] { json =>
     (
       (json \ "hour").validate[Int] |@|
       (json \ "minute").validate[Int] |@|

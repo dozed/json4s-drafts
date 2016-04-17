@@ -15,11 +15,11 @@ object JodaTimeExample2 extends App {
 
   // define JSON instances for joda-time types
 
-  implicit val instantJson: JSON[Instant] = JSON.of[Long].xmap[Instant](x => new Instant(x), i => i.getMillis)
+  implicit val instantJson: JSON[Instant] = JSON[Long].xmap[Instant](x => new Instant(x), i => i.getMillis)
 
-  implicit val durationJson: JSON[Duration] = JSON.of[Long].xmap[Duration](new Duration(_), _.getMillis)
+  implicit val durationJson: JSON[Duration] = JSON[Long].xmap[Duration](new Duration(_), _.getMillis)
 
-  implicit val dateTimeJson: JSON[DateTime] = JSON.of[String].exmap[DateTime](
+  implicit val dateTimeJson: JSON[DateTime] = JSON[String].exmap[DateTime](
     str => {
       Try(dateTimeFormat.parseDateTime(str).successNel[Error]) getOrElse {
         Fail.invalidFormat(s"Could not parse losless date from: $str")
@@ -43,7 +43,7 @@ object JodaTimeExample2 extends App {
     (hour, minute, seconds, millis) => new LocalTime(hour, minute, seconds, millis)
   )
 
-  implicit val periodWrite: JSON[Period] = JSON.of[String].exmap[Period](
+  implicit val periodWrite: JSON[Period] = JSON[String].exmap[Period](
     s => Try(Period.parse(s).successNel[Error]) getOrElse Fail.invalidFormat(s"Could not parse Period: $s"),
     p => p.toString
   )

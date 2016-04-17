@@ -29,7 +29,7 @@ trait TupleMaps extends Dsl { self: Types =>
 
 
   def jsonr2[R, A, B](key1: String, key2: String)(f: (A, B) => R)(implicit jsonA: JSON[A], jsonB: JSON[B]): JSONR[R] = {
-    JSON.read { json =>
+    JSONR.instance { json =>
       ((json \ key1).validate[A] |@| (json \ key2).validate[B]).apply(f)
     }
   }
@@ -49,7 +49,7 @@ trait TupleMaps extends Dsl { self: Types =>
 
 
   def jsonw2[R, A, B](key1: String, key2: String)(f: R => Option[(A, B)])(implicit jsonA: JSON[A], jsonB: JSON[B]): JSONW[R] = {
-    JSON.write[R] { r =>
+    JSONW.instance[R] { r =>
       val (a, b) = f(r).get
       (key1 -> jsonA.write(a)) ~ (key2 -> jsonB.write(b))
     }

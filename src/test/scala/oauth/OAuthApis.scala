@@ -40,7 +40,7 @@ object OAuthApis {
   // person's profile in OpenID Connect format
   // https://developers.google.com/+/web/api/rest/openidconnect/getOpenIdConnect#request
   // https://accounts.google.com/.well-known/openid-configuration
-  val readGoogleUser = JSON.readE[UserProfile] { jv =>
+  val readGoogleUser = JSONR.instanceE[UserProfile] { jv =>
     for {
       id <- (jv \ "sub").read[String]
       email <- (jv \ "email").read[String]
@@ -56,7 +56,7 @@ object OAuthApis {
     }
   }
 
-  val readFacebookUser = JSON.readE[UserProfile] { jv =>
+  val readFacebookUser = JSONR.instanceE[UserProfile] { jv =>
     for {
       id <- (jv \ "id").read[String]
       email <- (jv \ "email").read[String]

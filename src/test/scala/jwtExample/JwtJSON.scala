@@ -38,12 +38,12 @@ object JwtJSON {
     case Inr(Inr(Inr(Inr(Inr(Inr(Inr(Inl(Claim.Custom(key, value))))))))) => (key, parseJson(value))
   }
 
-  implicit lazy val claimsRead = JSON.read[List[Claim]] {
+  implicit lazy val claimsRead = JSONR.instance[List[Claim]] {
     case x: JObject => x.obj.map(x => readClaim.tupled(x)).sequence[Result, Claim]
     case json => Fail.unexpected(json, classOf[JObject])
   }
 
-  implicit lazy val claimsWrite = JSON.write[List[Claim]] { xs =>
+  implicit lazy val claimsWrite = JSONW.instance[List[Claim]] { xs =>
     JObject(xs map writeClaim)
   }
 
@@ -75,12 +75,12 @@ object JwtJSON {
     case Header.Alg(x) => ("alg", x.toJson)
   }
 
-  implicit lazy val headersRead = JSON.read[List[Header]] {
+  implicit lazy val headersRead = JSONR.instance[List[Header]] {
     case x: JObject => x.obj.map(x => readHeader.tupled(x)).sequence[Result, Header]
     case json => Fail.unexpected(json, classOf[JObject])
   }
 
-  implicit lazy val headersWrite = JSON.write[List[Header]] { xs =>
+  implicit lazy val headersWrite = JSONW.instance[List[Header]] { xs =>
     JObject(xs map writeHeader)
   }
 

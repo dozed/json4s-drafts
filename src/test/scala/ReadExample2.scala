@@ -34,28 +34,28 @@ object ReadExample2 extends App {
 
 
 
-  implicit val myARead = JSON.readE[MyA] { json =>
+  implicit val myARead = JSONR.instanceE[MyA] { json =>
     for {
       a <- (json \ "a").read[Option[String]]
       x <- (json \ "x").read[Int]
     } yield MyA(a, x)
   }
 
-  val myARead2 = JSON.read[MyA] { json =>
+  val myARead2 = JSONR.instance[MyA] { json =>
     (
       (json \ "a").validate[Option[String]] |@|
       (json \ "x").validate[Int]
     ).tupled.map(MyA.tupled)
   }
 
-  val myARead3 = JSON.read[(Option[String], Int)] {
+  val myARead3 = JSONR.instance[(Option[String], Int)] {
     for {
       a <- fieldT[Option[String]](_ \ "a")
       x <- fieldT[Int](_ \ "x")
     } yield (a |@| x).tupled
   }
 
-  implicit val myAWrite = JSON.write[MyA] { myA =>
+  implicit val myAWrite = JSONW.instance[MyA] { myA =>
     ("a" -> myA.a) ~
       ("x" -> myA.x)
   }

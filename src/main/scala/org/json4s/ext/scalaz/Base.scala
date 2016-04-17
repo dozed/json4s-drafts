@@ -70,14 +70,14 @@ trait Base { this: Types =>
     def write(value: JValue) = value
   }
 
-  implicit def jvalueJSONW[A <: JValue] = JSON.write[A](identity)
+  implicit def jvalueJSONW[A <: JValue] = JSONW.instance[A](identity)
 
-  implicit def jobjectJSONR: JSONR[JObject] = JSON.read[JObject] {
+  implicit def jobjectJSONR: JSONR[JObject] = JSONR.instance[JObject] {
     case a:JObject => a.successNel
     case json => Fail.unexpected(json, classOf[JObject])
   }
 
-  implicit def jarrayJSONR: JSONR[JArray] = JSON.read[JArray] {
+  implicit def jarrayJSONR: JSONR[JArray] = JSONR.instance[JArray] {
     case a:JArray => a.successNel
     case json => Fail.unexpected(json, classOf[JArray])
   }

@@ -14,10 +14,10 @@ Adds:
     - `JSONR.apply[A:JSONL]: JSONL[A]`                                      (implicit lookup)
     - `JSONW.apply[A:JSONW]: JSONW[A]`
     - `JSON.instance[A](f: JValue => Result[A], g: A => JValue): JSON[A]`   (`JSON[A]` from functions)
-    - `JSON.read[A](f: JValue => Result[A]): JSONR[A]`     (applicative parsing)
-    - `JSON.readE[A](f: JValue => Error \/ A): JSONR[A]`   (monadic parsing)
-    - `JSON.write(f: A => JValue): JSONW[A]`               (write json)
-    - `JSON.writeContext[C, A](f: (C, A) => JValue): JSONW[JSONWContext[C, A]]`   (context-dependent JSON writer)
+    - `JSONR.instance[A](f: JValue => Result[A]): JSONR[A]`     (applicative parsing)
+    - `JSONR.instanceE[A](f: JValue => Error \/ A): JSONR[A]`   (monadic parsing)
+    - `JSONW.instance(f: A => JValue): JSONW[A]`               (write json)
+    - `JSONW.withContext[C, A](f: (C, A) => JValue): JSONW[JSONWContext[C, A]]`   (context-dependent JSON writer)
   - JSON object codecs with fixed arity
     - `json2[R, A, B]`
     - `json3[R, A, B, C]`
@@ -141,7 +141,7 @@ Characteristics
 
  
 ```scala
-implicit val intervalRead: JSONR[Interval] = JSON.read[Interval] { json =>
+implicit val intervalRead: JSONR[Interval] = JSONR.instance[Interval] { json =>
   (
     (json \ "start").validate[Long] |@|
     (json \ "end").validate[Long]
@@ -162,7 +162,7 @@ Characteristics
 
 
 ```scala
-implicit val itemRead: JSONR[Item] = JSON.readE[Item]({ json =>
+implicit val itemRead: JSONR[Item] = JSONR.instanceE[Item]({ json =>
   for {
     label <- (json \ "label").read[String]
     amount <- (json \ "amount" \ "value").read[Int]
