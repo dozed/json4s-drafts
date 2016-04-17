@@ -160,9 +160,9 @@ trait Types extends Base {
 
   object JSON {
 
-    def of[A:JSON](implicit jsonA: JSON[A]): JSON[A] = jsonA
+    def apply[A:JSON](implicit jsonA: JSON[A]): JSON[A] = jsonA
 
-    def apply[A](f: JValue => Result[A], g: A => JValue): JSON[A] = new JSON[A] {
+    def instance[A](f: JValue => Result[A], g: A => JValue): JSON[A] = new JSON[A] {
       override def read(json: JValue): Result[A] = f(json)
       override def write(value: A): JValue = g(value)
     }

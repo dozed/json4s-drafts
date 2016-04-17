@@ -18,7 +18,7 @@ object JodaTimeExample1 extends App {
 
   // define JSONW and JSONR instances for joda-time types
 
-  implicit val instantJson = JSON.of[Long].xmap[Instant](x => new Instant(x), i => i.getMillis)
+  implicit val instantJson = JSON[Long].xmap[Instant](x => new Instant(x), i => i.getMillis)
 
   val dateTimeFormat = ISODateTimeFormat.dateTime.withOffsetParsed
 

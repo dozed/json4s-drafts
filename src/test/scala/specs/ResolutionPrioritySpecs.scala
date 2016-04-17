@@ -32,7 +32,7 @@ object ResolutionPrioritySpecs extends Specification {
 
     // TODO compiles but shouldnt
     // shapeless.test.illTyped("""implicit def ccJSON: JSON[CC2] = JSON.of[CC2]""")
-    implicit def ccJSON: JSON[CC2] = JSON.of[CC2]
+    implicit def ccJSON: JSON[CC2] = JSON[CC2]
 
     success
 
@@ -52,7 +52,7 @@ object ResolutionPrioritySpecs extends Specification {
 
   "An instance can be defined explicitely" in {
 
-    implicit val ccJSON: JSON[CC2] = JSON.of[(Int, String)].xmap[CC2](
+    implicit val ccJSON: JSON[CC2] = JSON[(Int, String)].xmap[CC2](
       tp => CC2(tp._1, tp._2),
       cc => (cc.i, cc.s)
     )
@@ -80,7 +80,7 @@ object ResolutionPrioritySpecs extends Specification {
   "An explicit instance in implicit scope overrides implicit derivation" in {
 
     object Codecs {
-      implicit val ccJSON: JSON[CC2] = JSON.of[(Int, String)].xmap[CC2](
+      implicit val ccJSON: JSON[CC2] = JSON[(Int, String)].xmap[CC2](
         tp => CC2(tp._1, tp._2),
         cc => (cc.i, cc.s)
       )

@@ -16,7 +16,7 @@ object TupleMaps1 extends App {
   implicit val photoJson = json3("id", "file", "localizations")(Photo.unapply, Photo.apply)
 
 
-  implicit def nonEmptyList[A:JSONW:JSONR]: JSON[NonEmptyList[A]] = JSON.of[JArray].exmap[NonEmptyList[A]](
+  implicit def nonEmptyList[A:JSONW:JSONR]: JSON[NonEmptyList[A]] = JSON[JArray].exmap[NonEmptyList[A]](
     jarr => {
       for {
         xs  <- jarr.children.map(fromJSON[A]).sequence[Result, A]

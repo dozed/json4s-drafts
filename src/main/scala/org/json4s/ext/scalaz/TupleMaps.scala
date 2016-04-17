@@ -6,21 +6,21 @@ import scalaz._, Scalaz._
 trait TupleMaps extends Dsl { self: Types =>
 
    def json2[R, A:JSON, B:JSON](key1: String, key2: String)(f: R => Option[(A, B)], g: (A, B) => R): JSON[R] = {
-    JSON[R](
+    JSON.instance[R](
       jsonr2(key1, key2)(g),
       jsonw2(key1, key2)(f)
     )
   }
 
   def json3[R, A:JSON, B:JSON, C:JSON](key1: String, key2: String, key3: String)(f: R => Option[(A, B, C)], g: (A, B, C) => R): JSON[R] = {
-    JSON[R](
+    JSON.instance[R](
       jsonr3(key1, key2, key3)(g),
       jsonw3(key1, key2, key3)(f)
     )
   }
 
   def json4[R, A:JSON, B:JSON, C:JSON, D:JSON](key1: String, key2: String, key3: String, key4: String)(f: R => Option[(A, B, C, D)], g: (A, B, C, D) => R): JSON[R] = {
-    JSON[R](
+    JSON.instance[R](
       jsonr4(key1, key2, key3, key4)(g),
       jsonw4(key1, key2, key3, key4)(f)
     )

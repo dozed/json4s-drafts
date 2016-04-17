@@ -10,14 +10,14 @@ Adds:
     - `JSON[B].xmap[B](f1: A => B, f2: B => A): JSON[B]`
     - `JSON[B].exmap[B](f1: A => Result[B], f2: B => A): JSON[B]`
   - Methods to define `JSON[A]`/`JSONR[A]`/`JSONW[A]`
-    - `JSON.of[A:JSON](implicit jsonA: JSON[A]): JSON[A]`                (manifest `JSON[A]` from instance)
-    - `JSON.apply[A](f: JValue => Result[A], g: A => JValue): JSON[A]`   (`JSON[A]` from functions)
+    - `JSON.apply[A:JSON](implicit jsonA: JSON[A]): JSON[A]`                (manifest `JSON[A]` from instance)
+    - `JSONR.apply[A:JSONL]: JSONL[A]`                                      (implicit lookup)
+    - `JSONW.apply[A:JSONW]: JSONW[A]`
+    - `JSON.instance[A](f: JValue => Result[A], g: A => JValue): JSON[A]`   (`JSON[A]` from functions)
     - `JSON.read[A](f: JValue => Result[A]): JSONR[A]`     (applicative parsing)
     - `JSON.readE[A](f: JValue => Error \/ A): JSONR[A]`   (monadic parsing)
     - `JSON.write(f: A => JValue): JSONW[A]`               (write json)
     - `JSON.writeContext[C, A](f: (C, A) => JValue): JSONW[JSONWContext[C, A]]`   (context-dependent JSON writer)
-    - `JSONR.apply[A:JSONL]: JSONL[A]`                      (implicit lookup)
-    - `JSONW.apply[A:JSONW]: JSONW[A]`
   - JSON object codecs with fixed arity
     - `json2[R, A, B]`
     - `json3[R, A, B, C]`
@@ -49,7 +49,7 @@ implicit val localDateJson: JSON[LocalDate] = json3[LocalDate, Int, Int, Int]("y
 Assuming there is a `JSON[Long]`, one can derive a `JSON[Instant]` straightfowardly with `xmap`:
 
 ```scala
-implicit val instantJson = JSON.of[Long].xmap[Instant](x => new Instant(x), i => i.getMillis)
+implicit val instantJson = JSON[Long].xmap[Instant](x => new Instant(x), i => i.getMillis)
 ```
 
 
