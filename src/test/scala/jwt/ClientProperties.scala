@@ -6,7 +6,7 @@ import scalaz.Scalaz._
 import scalaz._
 
 /**
-  * Custom claim, can be used in a JWT
+  * ClientProperty represents properties of a client. It can be used as a custom claim in a JWT.
   */
 object ClientProperties {
 
@@ -18,12 +18,6 @@ object ClientProperties {
 
   val KEY_CLIENT_PROPERTY = "cp"
 
-  // create a JWT with a ClientProperty payload
-  def createClientPropertyToken(clientProps: ClientProperty, secret: String, algorithm: Algorithm) = {
-    val claims = List[Claim](Claim.Custom(KEY_CLIENT_PROPERTY, clientProps.toJson.nospaces))
-    val token = Jwt.sign(claims, secret, Algorithm.HS512)
-    token
-  }
 
   // constructors
   def isUser(userId: String) = ClientProperty(isUser = userId.some)
@@ -58,6 +52,12 @@ object ClientProperties {
   def grantViewer(document: String, props: ClientProperty) = isViewer(document) mappend props
   def grantOwner(document: String, props: ClientProperty) = isOwner(document) mappend props
 
+  // create a JWT with a ClientProperty payload
+  def createClientPropertyToken(clientProps: ClientProperty, secret: String, algorithm: Algorithm) = {
+    val claims = List[Claim](Claim.Custom(KEY_CLIENT_PROPERTY, clientProps.toJson.nospaces))
+    val token = Jwt.sign(claims, secret, Algorithm.HS512)
+    token
+  }
 
 }
 

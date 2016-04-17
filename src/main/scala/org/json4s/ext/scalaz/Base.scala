@@ -1,7 +1,6 @@
 package org.json4s.ext.scalaz
 
 import org.json4s._
-import org.json4s.ext.scalaz.JValueExts._
 
 import scalaz._
 import std.list._
@@ -103,26 +102,6 @@ trait Base { this: Types =>
   implicit def setJSONW[A: JSONW]: JSONW[Set[A]] = new JSONW[Set[A]] {
     def write(values: Set[A]): JValue = JArray(values.toList.map(x => toJSON(x)))
   }
-
-
-
-  //  implicit def traversableJSONR[F[_], A:JSONR](implicit cbf: scala.collection.generic.CanBuildFrom[F[_], A, F[A]]) =
-  //    new JSONR[F[A]] {
-  //      def read(value: _root_.org.json4s.JValue): Result[F[A]] = {
-  //        fromJSON[JArray](value) flatMap { jarray =>
-  //          jarray.children.map(fromJSON[A]).sequence[Result[?], A] map { xs =>
-  //            cbf().++=(xs).result()
-  //          }
-  //        }
-  //      }
-  //    }
-  //
-  //  implicit def traversableJSONW[F[A]<:TraversableOnce[A], A:JSONW] = new JSONW[F[A]] {
-  //    def write(values: F[A]) = {
-  //      JArray(values.map(x => toJSON(x)).toList)
-  //    }
-  //  }
-
 
   implicit def optionJSONR[A: JSONR]: JSONR[Option[A]] = new JSONR[Option[A]] {
     def read(json: JValue) = json match {
