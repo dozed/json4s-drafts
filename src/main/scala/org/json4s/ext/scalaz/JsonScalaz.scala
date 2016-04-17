@@ -61,6 +61,7 @@ trait Types extends Base {
   implicit def ErrorMonoid: Monoid[Error] = Monoid.instance[Error]((e1, e2) => e1, FilterError)
 
   type JValueTransform = JValue => Result[JValue]
+  def jsonTransform(f: JValueTransform): JValueTransform = f
 
   trait JSONR[A] { self =>
     def read(json: JValue): Result[A]
@@ -176,20 +177,9 @@ trait Types extends Base {
       override def write(value: A): JValue = g(value)
     }
 
-    def transform(f: JValueTransform): JValueTransform = f
-
     implicit def JSONfromJSONRW[A](implicit readA: JSONR[A], writeA: JSONW[A]): JSON[A] = new JSON[A] {
       override def read(json: JValue): Result[A] = readA.read(json)
       override def write(value: A): JValue = writeA.write(value)
-    }
-
-    def parse(text: String): Option[JValue] = parseJsonOpt(text)
-    def parseAsE[A:JSONR](text: String): Error \/ A = parseAs[A](text).disjunction.leftMap(_.head)
-    def parseAs[A:JSONR](text: String): Result[A] = {
-      parseJsonOpt(text) match {
-        case Some(json) => json.validate[A]
-        case _ => Fail("unexpected", "unexpected")
-      }
     }
 
   }
