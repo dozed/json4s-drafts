@@ -11,26 +11,6 @@ import scalaz._, Scalaz._
 
 trait JsonShapeless { self: Types =>
 
-  case class Thing[A](value: A)
-
-  def deriveJSONR[A](implicit readA: Thing[JSONR[A]]): JSONR[A] = readA.value
-  def deriveJSONW[A](implicit writeA: Thing[JSONW[A]]): JSONW[A] = writeA.value
-  def deriveJSON[A](implicit readA: Thing[JSONR[A]], writeA: Thing[JSONW[A]]): JSON[A] = new JSON[A] {
-    override def write(value: A): JValue = writeA.value.write(value)
-    override def read(json: JValue): Result[A] = readA.value.read(json)
-  }
-
-
-  implicit class JSONExt(json: JSON.type) {
-
-    def deriveJSONR[A](implicit readA: Thing[JSONR[A]]): JSONR[A] = readA.value
-    def deriveJSONW[A](implicit writeA: Thing[JSONW[A]]): JSONW[A] = writeA.value
-    def derive[A](implicit readA: Thing[JSONR[A]], writeA: Thing[JSONW[A]]): JSON[A] = new JSON[A] {
-      override def write(value: A): JValue = writeA.value.write(value)
-      override def read(json: JValue): Result[A] = readA.value.read(json)
-    }
-
-  }
 
 
   // JSONW for
@@ -39,8 +19,6 @@ trait JsonShapeless { self: Types =>
   // - HCons for field HLists: FieldType[K, H] :: T
   // - CNil
   // - CCons: H :+: T
-  //
-  // basically those can provide combinations for elementar instances when requested by implicit resolution, e.g. JSONW[H] + JSONW[T] => JSONW[H :: T]
 
   implicit val writeHNil: JSONW[HNil] =
     new JSONW[HNil] {
@@ -149,6 +127,28 @@ trait JsonShapeless { self: Types =>
 
 
   // a LabelledGeneric can be derived to Thing[JSONR[A]]
+
+  case class Thing[A](value: A)
+
+  def deriveJSONR[A](implicit readA: Thing[JSONR[A]]): JSONR[A] = readA.value
+  def deriveJSONW[A](implicit writeA: Thing[JSONW[A]]): JSONW[A] = writeA.value
+  def deriveJSON[A](implicit readA: Thing[JSONR[A]], writeA: Thing[JSONW[A]]): JSON[A] = new JSON[A] {
+    override def write(value: A): JValue = writeA.value.write(value)
+    override def read(json: JValue): Result[A] = readA.value.read(json)
+  }
+
+
+  implicit class JSONExt(json: JSON.type) {
+
+    def deriveJSONR[A](implicit readA: Thing[JSONR[A]]): JSONR[A] = readA.value
+    def deriveJSONW[A](implicit writeA: Thing[JSONW[A]]): JSONW[A] = writeA.value
+    def derive[A](implicit readA: Thing[JSONR[A]], writeA: Thing[JSONW[A]]): JSON[A] = new JSON[A] {
+      override def write(value: A): JValue = writeA.value.write(value)
+      override def read(json: JValue): Result[A] = readA.value.read(json)
+    }
+
+  }
+
 
   // LabelledGeneric representing a labelled HList (fields of a case class, product)
   implicit def productRead[A, R <: HList](implicit gen: LabelledGeneric.Aux[A, R], readR: Lazy[JSONR[R]]): Thing[JSONR[A]] =

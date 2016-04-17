@@ -60,8 +60,6 @@ trait Types extends Base {
   // flatMap on Validation and \/ requires a zero
   implicit def ErrorMonoid: Monoid[Error] = Monoid.instance[Error]((e1, e2) => e1, FilterError)
 
-  type JValueTransform = JValue => Result[JValue]
-  def jsonTransform(f: JValueTransform): JValueTransform = f
 
   trait JSONR[A] { self =>
     def read(json: JValue): Result[A]
@@ -74,18 +72,45 @@ trait Types extends Base {
   trait JSON[A] extends JSONR[A] with JSONW[A]
 
 
+  object JSONW {
 
-  // Monad[JSONR]
-  // Contravariant[JSONW]
-  // xmap, emap, exmap, orelse
+    def apply[A:JSONW]: JSONW[A] = implicitly[JSONW[A]]
+
+    def instance[A](f: A => JValue): JSONW[A] = f
+
+    def withContext[C, A](f: (C, A) => JValue): JSONW[JSONWContext[C, A]] = instance[JSONWContext[C, A]](ca => f.tupled(ca.a))
+
+  }
+
+
+  object JSONR {
+
+    def apply[A:JSONR]: JSONR[A] = implicitly[JSONR[A]]
+
+    def instance[A](f: JValue => Result[A]): JSONR[A] = f
+
+    def instanceE[A](f: JValue => Error \/ A): JSONR[A] = (json: JValue) => f(json).validationNel
+
+  }
+
+  object JSON {
+
+    def apply[A:JSON](implicit jsonA: JSON[A]): JSON[A] = jsonA
+
+    def instance[A](f: JValue => Result[A], g: A => JValue): JSON[A] = new JSON[A] {
+      override def read(json: JValue): Result[A] = f(json)
+      override def write(value: A): JValue = g(value)
+    }
+
+    implicit def JSONfromJSONRW[A](implicit readA: JSONR[A], writeA: JSONW[A]): JSON[A] = new JSON[A] {
+      override def read(json: JValue): Result[A] = readA.read(json)
+      override def write(value: A): JValue = writeA.write(value)
+    }
+
+  }
+
 
   implicit val jsonrMonad = new Monad[JSONR] {
-
-    override def map[A, B](fa: JSONR[A])(f: (A) => B): JSONR[B] = new JSONR[B] {
-      override def read(json: JValue): Result[B] = {
-        fa.read(json) map f
-      }
-    }
 
     override def point[A](a: => A): JSONR[A] = new JSONR[A] {
       override def read(json: JValue): Result[A] = a.successNel
@@ -147,42 +172,7 @@ trait Types extends Base {
 
   }
 
-  object JSONW {
 
-    def apply[A:JSONW]: JSONW[A] = implicitly[JSONW[A]]
-
-    def instance[A](f: A => JValue): JSONW[A] = f
-
-    def withContext[C, A](f: (C, A) => JValue): JSONW[JSONWContext[C, A]] = instance[JSONWContext[C, A]](ca => f.tupled(ca.a))
-
-  }
-
-
-  object JSONR {
-
-    def apply[A:JSONR]: JSONR[A] = implicitly[JSONR[A]]
-
-    def instance[A](f: JValue => Result[A]): JSONR[A] = f
-
-    def instanceE[A](f: JValue => Error \/ A): JSONR[A] = (json: JValue) => f(json).validationNel
-
-  }
-
-  object JSON {
-
-    def apply[A:JSON](implicit jsonA: JSON[A]): JSON[A] = jsonA
-
-    def instance[A](f: JValue => Result[A], g: A => JValue): JSON[A] = new JSON[A] {
-      override def read(json: JValue): Result[A] = f(json)
-      override def write(value: A): JValue = g(value)
-    }
-
-    implicit def JSONfromJSONRW[A](implicit readA: JSONR[A], writeA: JSONW[A]): JSON[A] = new JSON[A] {
-      override def read(json: JValue): Result[A] = readA.read(json)
-      override def write(value: A): JValue = writeA.write(value)
-    }
-
-  }
 
   implicit def Result2JSONR[A](f: JValue => Result[A]): JSONR[A] = new JSONR[A] {
     def read(json: JValue) = f(json)
@@ -227,6 +217,10 @@ trait Types extends Base {
     def toJson(implicit w: JSONW[A]): JValue = w.write(a)
     def toJson[C](c: C)(implicit w: JSONW[JSONWContext[C, A]]) = w.write(JSONWContext(c, a))
   }
+
+  type JValueTransform = JValue => Result[JValue]
+  def jsonTransform(f: JValueTransform): JValueTransform = f
+
 }
 
 object JsonScalaz extends Types with TupleMaps with JValueExts with Lifting with Base with Dsl with ReadExt with Tuples with JsonShapeless
