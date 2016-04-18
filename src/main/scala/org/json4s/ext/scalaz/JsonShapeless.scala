@@ -140,12 +140,22 @@ trait JsonShapeless { self: Types =>
 
   implicit class JSONExt(json: JSON.type) {
 
-    def deriveJSONR[A](implicit readA: Thing[JSONR[A]]): JSONR[A] = readA.value
-    def deriveJSONW[A](implicit writeA: Thing[JSONW[A]]): JSONW[A] = writeA.value
     def derive[A](implicit readA: Thing[JSONR[A]], writeA: Thing[JSONW[A]]): JSON[A] = new JSON[A] {
       override def write(value: A): JValue = writeA.value.write(value)
       override def read(json: JValue): Result[A] = readA.value.read(json)
     }
+
+  }
+
+  implicit class JSONRExt(jsonr: JSONR.type) {
+
+    def derive[A](implicit readA: Thing[JSONR[A]]): JSONR[A] = readA.value
+
+  }
+
+  implicit class JSONWExt(jsonr: JSONW.type) {
+
+    def derive[A](implicit writeA: Thing[JSONW[A]]): JSONW[A] = writeA.value
 
   }
 
@@ -198,9 +208,8 @@ trait JsonShapeless { self: Types =>
   }
 
 
-  // syntax for a JSONR[A] where A is a part of a Coproduct
-
   implicit class JSONRShapelessExt(json: JValue) {
+    // validate JSON as A and inject into a Coproduct where A is part of
     def validateC[A:JSONR, C <: Coproduct](implicit inj: Inject[C, A]): Result[C] = {
       implicitly[JSONR[A]].read(json).map(t => Coproduct[C](t))
     }

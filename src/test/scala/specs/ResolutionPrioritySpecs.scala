@@ -41,6 +41,8 @@ object ResolutionPrioritySpecs extends Specification {
   "An instance can be derived explicitely" in {
 
     implicit val ccJSON = JSON.derive[CC]
+    implicit val ccJSONR = JSONR.derive[CC]
+    implicit val ccJSONW = JSONW.derive[CC]
 
     val json0 = toJSON(value0)
     val readValue0 = fromJSON[CC](expectedJson0)

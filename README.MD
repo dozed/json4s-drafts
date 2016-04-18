@@ -27,6 +27,7 @@ Adds:
     - Labelled Generic HList (fields of a case class, product)
     - Labelled Generic Coproduct (inhabitants of a type, sum)
     - `deriveJSON[A]`, `deriveJSONR[A]`, `deriveJSONW[A]`
+    - `JSON.derive[A]`, `JSONR.derive[A]`, `JSONW.derive[A]`
   - Typeclass-based DSL to construct JSON
   - Things
     - [Context dependent writers](https://github.com/dozed/json4s-drafts/blob/master/src/test/scala/ContextDependentWriterExample.scala)
@@ -199,7 +200,10 @@ println(json.read[Algorithm].require)
 
 For the generic representations labelled HList and labelled Coproduct instance can be derived.
 A labelled HList represents the fields of a class. A labelled Coproduct represents the inhabitants of a type.
-There are three methods: `deriveJSON[A]`, `deriveJSONR[A]`, `deriveJSONW[A]`  
+There are two alternative: 
+  - `deriveJSON[A]`, `deriveJSONR[A]`, `deriveJSONW[A]`
+  - `JSON.derive[A]`, `JSONR.derive[A]`, `JSONW.derive[A]`
+`deriveJSON[A]`, `deriveJSONR[A]`, `deriveJSONW[A]`  
 
 
 ```scala
@@ -213,11 +217,11 @@ case class Handful(value: Double) extends Measure
 case class Pieces(value: Double) extends Measure
 case class Milliliter(value: Double) extends Measure
 
-implicit def queryParamJSON = deriveJSON[QueryParam]
-implicit def cookieJSON     = deriveJSON[Cookie]
-implicit def requestJSON    = deriveJSON[Request]
-implicit def responseJSON   = deriveJSON[Response]
-implicit def entryJSON      = deriveJSON[Entry]
+implicit def queryParamJSON = JSON.derive[QueryParam]
+implicit def cookieJSON     = JSON.derive[Cookie]
+implicit def requestJSON    = JSON.derive[Request]
+implicit def responseJSON   = JSON.derive[Response]
+implicit def entryJSON      = JSON.derive[Entry]
 
 
 def gram(value: Double): Measure = Gram(value)
