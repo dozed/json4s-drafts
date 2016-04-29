@@ -13,9 +13,15 @@ trait ReadExt { self: Types =>
   def validate2[A:JSONR](json: JValue): Result[A] = implicitly[JSONR[A]].read(json)
 
   implicit class StringExt(s: String) {
-    def json = org.json4s.jackson.parseJson(s)
-    def validate[A: JSONR]: ValidationNel[Error, A] = implicitly[JSONR[A]].read(json)
-    def read[A: JSONR]: Error \/ A = implicitly[JSONR[A]].read(json).disjunction.leftMap(_.head)
+
+    def json: Option[JValue] = org.json4s.jackson.parseJsonOpt(s)
+
+    def validate[A: JSONR]: ValidationNel[Error, A] = {
+      json.toSuccessNel(InvalidFormatError("malformed json"):Error) flatMap (_.validate[A])
+    }
+
+    def read[A: JSONR]: Error \/ A = validate[A].disjunction.leftMap(_.head)
+
   }
 
 }
