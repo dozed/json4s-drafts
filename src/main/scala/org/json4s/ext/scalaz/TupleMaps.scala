@@ -3,7 +3,7 @@ package org.json4s.ext.scalaz
 import org.json4s._
 import scalaz._, Scalaz._
 
-trait TupleMaps extends Dsl { self: Types =>
+trait TupleMaps { self: Types =>
 
    def json2[R, A:JSON, B:JSON](key1: String, key2: String)(f: R => Option[(A, B)], g: (A, B) => R): JSON[R] = {
     JSON.instance[R](
@@ -51,21 +51,33 @@ trait TupleMaps extends Dsl { self: Types =>
   def jsonw2[R, A, B](key1: String, key2: String)(f: R => Option[(A, B)])(implicit jsonA: JSON[A], jsonB: JSON[B]): JSONW[R] = {
     JSONW.instance[R] { r =>
       val (a, b) = f(r).get
-      (key1 -> jsonA.write(a)) ~ (key2 -> jsonB.write(b))
+      JObject(
+        key1 -> jsonA.write(a),
+        key2 -> jsonB.write(b)
+      )
     }
   }
 
   def jsonw3[R, A, B, C](key1: String, key2: String, key3: String)(f: R => Option[(A, B, C)])(implicit jsonA: JSON[A], jsonB: JSON[B], jsonC: JSON[C]): JSONW[R] = new JSONW[R] {
     override def write(value: R): JValue = {
       val (a, b, c) = f(value).get
-      (key1 -> jsonA.write(a)) ~ (key2 -> jsonB.write(b)) ~ (key3 -> jsonC.write(c))
+      JObject(
+        key1 -> jsonA.write(a),
+        key2 -> jsonB.write(b),
+        key3 -> jsonC.write(c)
+      )
     }
   }
 
   def jsonw4[R, A, B, C, D](key1: String, key2: String, key3: String, key4: String)(f: R => Option[(A, B, C, D)])(implicit jsonA: JSON[A], jsonB: JSON[B], jsonC: JSON[C], jsonD: JSON[D]): JSONW[R] = new JSONW[R] {
     override def write(value: R): JValue = {
       val (a, b, c, d) = f(value).get
-      (key1 -> jsonA.write(a)) ~ (key2 -> jsonB.write(b)) ~ (key3 -> jsonC.write(c)) ~ (key4 -> jsonD.write(d))
+      JObject(
+        key1 -> jsonA.write(a),
+        key2 -> jsonB.write(b),
+        key3 -> jsonC.write(c),
+        key4 -> jsonD.write(d)
+      )
     }
   }
 
