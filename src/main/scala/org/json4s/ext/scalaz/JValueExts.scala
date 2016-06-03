@@ -2,6 +2,7 @@ package org.json4s.ext.scalaz
 
 import org.json4s._
 import org.json4s.jackson.compactJson
+import org.json4s.jackson.prettyJson
 
 object JValueExts extends JValueExts
 
@@ -41,7 +42,12 @@ trait JValueExts {
       case _ => None
     }
 
+
     def nospaces: String = compactJson(json)
+    def spaces2: String = prettyJson(json)
+
+    def compact: String = compactJson(json)
+    def pretty: String = prettyJson(json)
 
   }
 
